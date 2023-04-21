@@ -56,15 +56,23 @@
 		4AC8C49929F3529B00A0E432 /* Puzzle */ = {
 			isa = PBXGroup;
 			children = (
-				4AC8C49A29F3529C00A0E432 /* AppDelegate.swift */,
-				4AC8C49C29F3529C00A0E432 /* SceneDelegate.swift */,
-				4AC8C49E29F3529C00A0E432 /* ViewController.swift */,
 				4AC8C4A029F3529C00A0E432 /* Main.storyboard */,
-				4AC8C4A329F3529D00A0E432 /* Assets.xcassets */,
-				4AC8C4A529F3529D00A0E432 /* LaunchScreen.storyboard */,
+				4AC8C49E29F3529C00A0E432 /* ViewController.swift */,
+				4AC8C4AE29F352B400A0E432 /* Supporting Files */,
 				4AC8C4A829F3529D00A0E432 /* Info.plist */,
 			);
 			path = Puzzle;
+			sourceTree = "<group>";
+		};
+		4AC8C4AE29F352B400A0E432 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				4AC8C49A29F3529C00A0E432 /* AppDelegate.swift */,
+				4AC8C49C29F3529C00A0E432 /* SceneDelegate.swift */,
+				4AC8C4A329F3529D00A0E432 /* Assets.xcassets */,
+				4AC8C4A529F3529D00A0E432 /* LaunchScreen.storyboard */,
+			);
+			path = "Supporting Files";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
