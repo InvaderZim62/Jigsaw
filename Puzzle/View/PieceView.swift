@@ -15,11 +15,9 @@ struct PieceConst {
     static let lineWidthFactor: CGFloat = 0.015
 }
 
-class PieceView: UIView {
+class PieceView: UIImageView {
     
     var piece = Piece()
-    var image = UIImage(named: "tree")
-    var color = UIColor.blue
     
     private var first = true
 
@@ -38,18 +36,14 @@ class PieceView: UIView {
     // create path for one edge at a time, rotating the path 90 deg between each;
     // path will pick where the previous left off, but the coordinates will be
     // relative to the new orientation
-    override func draw(_ rect: CGRect) {
+    func createPiece(with tileImage: UIImage) {
         var outline = UIBezierPath()
         for index in 0..<4 {
             outline = addSide(piece.sides[index], to: outline)
             outline.apply(transformToRotate(angle: -90.rads, about: frameCenter))
         }
         outline.close()
-        color.setFill()
-        outline.fill()
-        UIColor.black.setStroke()
-        outline.lineWidth = lineWidth
-        outline.stroke()
+        image = tileImage.shapeImageTo(outline)
     }
 
     private func addSide(_ side: Side, to path: UIBezierPath) -> UIBezierPath {
