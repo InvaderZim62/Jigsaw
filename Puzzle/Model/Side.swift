@@ -8,21 +8,21 @@
 import Foundation
 
 struct Side {
-    let shape: Shape
-    let tabPosition: CGFloat  // percentage from edge for tab or hole
+    let type: Type
+    let tabPosition: CGFloat  // percentage from edge for knob or hole
     
-    init(shape: Shape, tabPosition: CGFloat = 0.5) {
-        self.shape = shape
+    init(type: Type, tabPosition: CGFloat = 0.5) {
+        self.type = type
         self.tabPosition = tabPosition
     }
 }
 
-enum Shape: CaseIterable {
-    case tab
+enum Type: CaseIterable {
+    case knob
     case hole
-    case flat
+    case edge
     
-    static func random() -> Shape {
-        Shape.allCases.randomElement()!
+    static func random() -> Type {
+        Type.allCases.randomElement()!
     }
 }

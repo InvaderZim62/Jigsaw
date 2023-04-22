@@ -57,10 +57,10 @@ class PieceView: UIView {
             edge.move(to: start)
         }
 
-        if side.shape == .flat {
+        if side.type == .edge {
             edge.addLine(to: end)
         } else {
-            let shapeSign: CGFloat = side.shape == .tab ? 1.0 : -1.0
+            let shapeSign: CGFloat = side.type == .knob ? 1.0 : -1.0
             let tabCenter = start + CGPoint(x: side.tabPosition * (end.x - start.x), y: -shapeSign * (start.y - radius - lineWidth / 2))
             
             let leftNeck = tabCenter.offsetBy(dx: -neckWidth / 2, dy: shapeSign * 1.1 * radius)
@@ -81,7 +81,7 @@ class PieceView: UIView {
             
             edge.addCurve(to: leftNeck, controlPoint1: leftNeckCP1, controlPoint2: leftNeckCP2)
             edge.addCurve(to: leftEar, controlPoint1: leftEarCP1, controlPoint2: leftEarCP2)
-            edge.addArc(withCenter: tabCenter, radius: radius, startAngle: CGFloat.pi, endAngle: 0, clockwise: side.shape == .tab)
+            edge.addArc(withCenter: tabCenter, radius: radius, startAngle: CGFloat.pi, endAngle: 0, clockwise: side.type == .knob)
             edge.addCurve(to: rightNeck, controlPoint1: rightNeckCP1, controlPoint2: rightNeckCP2)
             edge.addCurve(to: end, controlPoint1: endCP1, controlPoint2: endCP2)
         }

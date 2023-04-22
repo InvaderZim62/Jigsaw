@@ -17,31 +17,31 @@ class ViewController: UIViewController {
         super.viewDidLoad()
 
         let sides1: [Side] = [
-            .init(shape: .tab, tabPosition: 0.4),
-            .init(shape: .hole, tabPosition: 0.4),
-            .init(shape: .hole, tabPosition: 0.6),
-            .init(shape: .tab, tabPosition: 0.4),
+            .init(type: .knob, tabPosition: 0.4),
+            .init(type: .hole, tabPosition: 0.4),
+            .init(type: .hole, tabPosition: 0.6),
+            .init(type: .knob, tabPosition: 0.4),
         ]
         
         let sides2: [Side] = [
-            .init(shape: .hole, tabPosition: 0.4),
-            .init(shape: .flat),
-            .init(shape: .tab, tabPosition: 0.5),
-            .init(shape: .tab, tabPosition: (1 - sides1[1].tabPosition)),
+            .init(type: .hole, tabPosition: 0.4),
+            .init(type: .edge),
+            .init(type: .knob, tabPosition: 0.5),
+            .init(type: .knob, tabPosition: (1 - sides1[1].tabPosition)),
         ]
         
         let sides3: [Side] = [
-            .init(shape: .tab, tabPosition: (1 - sides1[2].tabPosition)),
-            .init(shape: .hole, tabPosition: 0.4),
-            .init(shape: .flat),
-            .init(shape: .hole, tabPosition: 0.5),
+            .init(type: .knob, tabPosition: (1 - sides1[2].tabPosition)),
+            .init(type: .hole, tabPosition: 0.4),
+            .init(type: .edge),
+            .init(type: .hole, tabPosition: 0.5),
         ]
         
         let sides4: [Side] = [
-            .init(shape: .hole, tabPosition: (1 - sides2[2].tabPosition)),
-            .init(shape: .flat),
-            .init(shape: .flat),
-            .init(shape: .tab, tabPosition: (1 - sides3[1].tabPosition)),
+            .init(type: .hole, tabPosition: (1 - sides2[2].tabPosition)),
+            .init(type: .edge),
+            .init(type: .edge),
+            .init(type: .knob, tabPosition: (1 - sides3[1].tabPosition)),
         ]
         
         let offset = (1 - 2 * PieceConst.insetFactor) * PuzzleConst.width

@@ -9,9 +9,9 @@ import Foundation
 
 struct Piece {
     var sides: [Side] = [
-        .init(shape: Shape.random()),
-        .init(shape: Shape.random()),
-        .init(shape: Shape.random()),
-        .init(shape: Shape.random()),
+        .init(type: Type.random()),
+        .init(type: Type.random()),
+        .init(type: Type.random()),
+        .init(type: Type.random()),
     ]
 }
