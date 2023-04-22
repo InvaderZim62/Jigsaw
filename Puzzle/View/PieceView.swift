@@ -17,7 +17,17 @@ struct PieceConst {
 
 class PieceView: UIImageView {
     
-    var piece = Piece()
+    var sides: [Side]
+    
+    init(sides: [Side], image: UIImage) {
+        self.sides = sides
+        super.init(image: image)
+        self.image = image.shapeImageTo(pathForSides(sides))
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     private var first = true
 
@@ -36,14 +46,14 @@ class PieceView: UIImageView {
     // create path for one edge at a time, rotating the path 90 deg between each;
     // path will pick where the previous left off, but the coordinates will be
     // relative to the new orientation
-    func createPiece(with tileImage: UIImage) {
+    func pathForSides(_ sides: [Side]) -> UIBezierPath {
         var outline = UIBezierPath()
         for index in 0..<4 {
-            outline = addSide(piece.sides[index], to: outline)
+            outline = addSide(sides[index], to: outline)
             outline.apply(transformToRotate(angle: -90.rads, about: frameCenter))
         }
         outline.close()
-        image = tileImage.shapeImageTo(outline)
+        return outline
     }
 
     private func addSide(_ side: Side, to path: UIBezierPath) -> UIBezierPath {

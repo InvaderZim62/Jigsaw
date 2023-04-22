@@ -8,10 +8,5 @@
 import Foundation
 
 struct Piece {
-    var sides: [Side] = [
-        .init(type: Type.random()),
-        .init(type: Type.random()),
-        .init(type: Type.random()),
-        .init(type: Type.random()),
-    ]
+    var sides: [Side]
 }
