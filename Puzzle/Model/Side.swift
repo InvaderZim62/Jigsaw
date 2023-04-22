@@ -9,11 +9,11 @@ import Foundation
 
 struct Side {
     let shape: Shape
-    let shapeOffsetFactor: CGFloat  // percentage from edge for tab or blank
+    let tabOffsetFactor: CGFloat  // percentage from edge for tab or blank
     
     init(shape: Shape, centerFactor: CGFloat = 0.5) {
         self.shape = shape
-        self.shapeOffsetFactor = centerFactor
+        self.tabOffsetFactor = centerFactor
     }
 }
 
