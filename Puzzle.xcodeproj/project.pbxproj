@@ -13,6 +13,10 @@
 		4AC8C4A229F3529C00A0E432 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AC8C4A029F3529C00A0E432 /* Main.storyboard */; };
 		4AC8C4A429F3529D00A0E432 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4AC8C4A329F3529D00A0E432 /* Assets.xcassets */; };
 		4AC8C4A729F3529D00A0E432 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AC8C4A529F3529D00A0E432 /* LaunchScreen.storyboard */; };
+		4AC8C4B029F3536200A0E432 /* Piece.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC8C4AF29F3536200A0E432 /* Piece.swift */; };
+		4AC8C4B429F3553800A0E432 /* PieceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC8C4B329F3553800A0E432 /* PieceView.swift */; };
+		4AC8C4B629F3582500A0E432 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC8C4B529F3582500A0E432 /* Extensions.swift */; };
+		4AC8C4B829F3637F00A0E432 /* Side.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC8C4B729F3637F00A0E432 /* Side.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +28,10 @@
 		4AC8C4A329F3529D00A0E432 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4AC8C4A629F3529D00A0E432 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4AC8C4A829F3529D00A0E432 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4AC8C4AF29F3536200A0E432 /* Piece.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piece.swift; sourceTree = "<group>"; };
+		4AC8C4B329F3553800A0E432 /* PieceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PieceView.swift; sourceTree = "<group>"; };
+		4AC8C4B529F3582500A0E432 /* Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		4AC8C4B729F3637F00A0E432 /* Side.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Side.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,7 +65,10 @@
 			isa = PBXGroup;
 			children = (
 				4AC8C4A029F3529C00A0E432 /* Main.storyboard */,
-				4AC8C49E29F3529C00A0E432 /* ViewController.swift */,
+				4AC8C4BB29F39E9200A0E432 /* Controller */,
+				4AC8C4BA29F39E8200A0E432 /* View */,
+				4AC8C4B929F39E7100A0E432 /* Model */,
+				4AC8C4BC29F39EB300A0E432 /* Utilities */,
 				4AC8C4AE29F352B400A0E432 /* Supporting Files */,
 				4AC8C4A829F3529D00A0E432 /* Info.plist */,
 			);
@@ -73,6 +84,39 @@
 				4AC8C4A529F3529D00A0E432 /* LaunchScreen.storyboard */,
 			);
 			path = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		4AC8C4B929F39E7100A0E432 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				4AC8C4AF29F3536200A0E432 /* Piece.swift */,
+				4AC8C4B729F3637F00A0E432 /* Side.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		4AC8C4BA29F39E8200A0E432 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				4AC8C4B329F3553800A0E432 /* PieceView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		4AC8C4BB29F39E9200A0E432 /* Controller */ = {
+			isa = PBXGroup;
+			children = (
+				4AC8C49E29F3529C00A0E432 /* ViewController.swift */,
+			);
+			path = Controller;
+			sourceTree = "<group>";
+		};
+		4AC8C4BC29F39EB300A0E432 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				4AC8C4B529F3582500A0E432 /* Extensions.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -146,7 +190,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4AC8C4B629F3582500A0E432 /* Extensions.swift in Sources */,
+				4AC8C4B429F3553800A0E432 /* PieceView.swift in Sources */,
+				4AC8C4B029F3536200A0E432 /* Piece.swift in Sources */,
 				4AC8C49F29F3529C00A0E432 /* ViewController.swift in Sources */,
+				4AC8C4B829F3637F00A0E432 /* Side.swift in Sources */,
 				4AC8C49B29F3529C00A0E432 /* AppDelegate.swift in Sources */,
 				4AC8C49D29F3529C00A0E432 /* SceneDelegate.swift in Sources */,
 			);
