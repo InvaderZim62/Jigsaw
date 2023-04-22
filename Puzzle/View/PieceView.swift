@@ -18,6 +18,7 @@ struct PieceConst {
 class PieceView: UIView {
     
     var piece = Piece()
+    var image = UIImage(named: "tree")
     var color = UIColor.blue
     
     private var first = true
@@ -34,58 +35,62 @@ class PieceView: UIView {
         CGAffineTransform(translationX: point.x, y: point.y).rotated(by: CGFloat(angle)).translatedBy(x: -point.x, y: -point.y)
     }
 
+    // create path for one edge at a time, rotating the path 90 deg between each;
+    // path will pick where the previous left off, but the coordinates will be
+    // relative to the new orientation
     override func draw(_ rect: CGRect) {
-        var edge = UIBezierPath()
+        var outline = UIBezierPath()
         for index in 0..<4 {
-            edge = addSide(piece.sides[index], edge: edge)
-            edge.apply(transformToRotate(angle: -90.rads, about: frameCenter))
+            outline = addSide(piece.sides[index], to: outline)
+            outline.apply(transformToRotate(angle: -90.rads, about: frameCenter))
         }
-        edge.close()
+        outline.close()
         color.setFill()
-        edge.fill()
+        outline.fill()
         UIColor.black.setStroke()
-        edge.lineWidth = lineWidth
-        edge.stroke()
+        outline.lineWidth = lineWidth
+        outline.stroke()
     }
 
-    private func addSide(_ side: Side, edge: UIBezierPath) -> UIBezierPath {
-        let start = CGPoint(x: inset, y: inset)
-        let end = CGPoint(x: bounds.width - inset, y: inset)
+    private func addSide(_ side: Side, to path: UIBezierPath) -> UIBezierPath {
+        let leftShoulder = CGPoint(x: inset, y: inset)
+        let rightShoulder = CGPoint(x: bounds.width - inset, y: inset)
 
         if first {
             first = false
-            edge.move(to: start)
+            path.move(to: leftShoulder)
         }
 
         if side.type == .edge {
-            edge.addLine(to: end)
+            path.addLine(to: rightShoulder)
         } else {
-            let shapeSign: CGFloat = side.type == .knob ? 1.0 : -1.0
-            let tabCenter = start + CGPoint(x: side.tabPosition * (end.x - start.x), y: -shapeSign * (start.y - radius - lineWidth / 2))
+            let sign: CGFloat = side.type == .knob ? 1 : -1
+            let tabCenter = leftShoulder + CGPoint(x: side.tabPosition * (rightShoulder.x - leftShoulder.x),
+                                                   y: -sign * (leftShoulder.y - radius - lineWidth / 2))
             
-            let leftNeck = tabCenter.offsetBy(dx: -neckWidth / 2, dy: shapeSign * 1.1 * radius)
-            let leftNeckCP1 = start.offsetBy(dx: cpLength, dy: 0)
-            let leftNeckCP2 = leftNeck.offsetBy(dx: 0, dy: shapeSign * cpLength)
+            let leftNeck = tabCenter.offsetBy(dx: -neckWidth / 2, dy: sign * 1.1 * radius)
+            let leftNeckCP1 = leftShoulder.offsetBy(dx: cpLength, dy: 0)
+            let leftNeckCP2 = leftNeck.offsetBy(dx: 0, dy: sign * cpLength)
             
             let leftEar = tabCenter.offsetBy(dx: -radius, dy: 0)
-            let leftEarCP1 = leftNeck.offsetBy(dx: 0, dy: -shapeSign * cpLength)
-            let leftEarCP2 = leftEar.offsetBy(dx: 0, dy: shapeSign * cpLength)
+            let leftEarCP1 = leftNeck.offsetBy(dx: 0, dy: -sign * cpLength)
+            let leftEarCP2 = leftEar.offsetBy(dx: 0, dy: sign * cpLength)
             
             let rightEar = tabCenter.offsetBy(dx: radius, dy: 0)
             let rightNeck = leftNeck.offsetBy(dx: neckWidth, dy: 0)
-            let rightNeckCP1 = rightEar.offsetBy(dx: 0, dy: shapeSign * cpLength)
-            let rightNeckCP2 = rightNeck.offsetBy(dx: 0, dy: -shapeSign * cpLength)
+            let rightNeckCP1 = rightEar.offsetBy(dx: 0, dy: sign * cpLength)
+            let rightNeckCP2 = rightNeck.offsetBy(dx: 0, dy: -sign * cpLength)
             
-            let endCP1 = rightNeck.offsetBy(dx: 0, dy: shapeSign * cpLength)
-            let endCP2 = end.offsetBy(dx: -cpLength, dy: 0)
+            let endCP1 = rightNeck.offsetBy(dx: 0, dy: sign * cpLength)
+            let endCP2 = rightShoulder.offsetBy(dx: -cpLength, dy: 0)
             
-            edge.addCurve(to: leftNeck, controlPoint1: leftNeckCP1, controlPoint2: leftNeckCP2)
-            edge.addCurve(to: leftEar, controlPoint1: leftEarCP1, controlPoint2: leftEarCP2)
-            edge.addArc(withCenter: tabCenter, radius: radius, startAngle: CGFloat.pi, endAngle: 0, clockwise: side.type == .knob)
-            edge.addCurve(to: rightNeck, controlPoint1: rightNeckCP1, controlPoint2: rightNeckCP2)
-            edge.addCurve(to: end, controlPoint1: endCP1, controlPoint2: endCP2)
+            path.addCurve(to: leftNeck, controlPoint1: leftNeckCP1, controlPoint2: leftNeckCP2)
+            path.addCurve(to: leftEar, controlPoint1: leftEarCP1, controlPoint2: leftEarCP2)
+            path.addArc(withCenter: tabCenter, radius: radius, startAngle: CGFloat.pi, endAngle: 0, clockwise: side.type == .knob)
+            path.addCurve(to: rightNeck, controlPoint1: rightNeckCP1, controlPoint2: rightNeckCP2)
+            path.addCurve(to: rightShoulder, controlPoint1: endCP1, controlPoint2: endCP2)
         }
         
-        return edge
+        return path
     }
 }
