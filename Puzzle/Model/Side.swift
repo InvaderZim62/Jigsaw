@@ -9,7 +9,7 @@ import Foundation
 
 struct Side {
     let type: Type
-    let tabPosition: CGFloat  // percentage from edge for knob or hole
+    let tabPosition: CGFloat  // percentage from edge for tab or hole
     
     init(type: Type, tabPosition: CGFloat = 0.5) {
         self.type = type
@@ -18,7 +18,7 @@ struct Side {
 }
 
 enum Type: CaseIterable {
-    case knob
+    case tab
     case hole
     case edge
     

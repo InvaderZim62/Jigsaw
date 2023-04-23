@@ -10,7 +10,6 @@
 import UIKit
 
 struct PieceConst {
-    static let insetFactor: CGFloat = 0.22  // start corner inset from frame corner, percent width
     static let radiusFactor: CGFloat = 0.08
     static let neckWidthFactor: CGFloat = 0.11
     static let controlPointLengthFactor: CGFloat = 0.05
@@ -34,7 +33,6 @@ class PieceView: UIImageView {
     private var first = true
 
     private lazy var frameCenter = CGPoint(x: frame.width / 2.0, y: frame.height / 2.0)
-    private lazy var inset = PieceConst.insetFactor * bounds.width
     private lazy var radius = PieceConst.radiusFactor * bounds.width
     private lazy var neckWidth = PieceConst.neckWidthFactor * bounds.width
     private lazy var cpLength = PieceConst.controlPointLengthFactor * bounds.width
@@ -59,8 +57,8 @@ class PieceView: UIImageView {
     }
 
     private func addSide(_ side: Side, to path: UIBezierPath) -> UIBezierPath {
-        let leftShoulder = CGPoint(x: inset, y: inset)
-        let rightShoulder = CGPoint(x: bounds.width - inset, y: inset)
+        let leftShoulder = CGPoint(x: PuzzleConst.inset, y: PuzzleConst.inset)
+        let rightShoulder = CGPoint(x: bounds.width - PuzzleConst.inset, y: PuzzleConst.inset)
 
         if first {
             first = false
@@ -70,7 +68,7 @@ class PieceView: UIImageView {
         if side.type == .edge {
             path.addLine(to: rightShoulder)
         } else {
-            let sign: CGFloat = side.type == .knob ? 1 : -1
+            let sign: CGFloat = side.type == .tab ? 1 : -1
             let tabCenter = leftShoulder + CGPoint(x: side.tabPosition * (rightShoulder.x - leftShoulder.x),
                                                    y: -sign * (leftShoulder.y - radius - lineWidth / 2))
             
@@ -92,7 +90,7 @@ class PieceView: UIImageView {
             
             path.addCurve(to: leftNeck, controlPoint1: leftNeckCP1, controlPoint2: leftNeckCP2)
             path.addCurve(to: leftEar, controlPoint1: leftEarCP1, controlPoint2: leftEarCP2)
-            path.addArc(withCenter: tabCenter, radius: radius, startAngle: CGFloat.pi, endAngle: 0, clockwise: side.type == .knob)
+            path.addArc(withCenter: tabCenter, radius: radius, startAngle: CGFloat.pi, endAngle: 0, clockwise: side.type == .tab)
             path.addCurve(to: rightNeck, controlPoint1: rightNeckCP1, controlPoint2: rightNeckCP2)
             path.addCurve(to: rightShoulder, controlPoint1: endCP1, controlPoint2: endCP2)
         }
