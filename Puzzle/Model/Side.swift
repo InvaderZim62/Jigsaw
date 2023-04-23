@@ -15,6 +15,14 @@ struct Side {
         self.type = type
         self.tabPosition = tabPosition
     }
+    
+    var mate: Side {
+        Side(type: self.type.mate, tabPosition: 1 - self.tabPosition)
+    }
+
+    static func random() -> Side {
+        Side(type: Type.randomTab(), tabPosition: Double.random(in: 0.4...0.6))  // pws: may want to truncate tabPosition to two decimal places
+    }
 }
 
 enum Type: CaseIterable {
@@ -22,7 +30,22 @@ enum Type: CaseIterable {
     case hole
     case edge
     
+    var mate: Type {
+        switch self {
+        case .tab:
+            return .hole
+        case .hole:
+            return .tab
+        case .edge:
+            return .edge
+        }
+    }
+    
     static func random() -> Type {
         Type.allCases.randomElement()!
+    }
+    
+    static func randomTab() -> Type {
+        Bool.random() ? .tab : .hole
     }
 }

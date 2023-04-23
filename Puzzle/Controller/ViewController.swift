@@ -16,54 +16,55 @@ struct PuzzleConst {
 
 class ViewController: UIViewController {
     
-    let image = UIImage(named: "tree")!
+    let image = UIImage(named: "tree")!  // eventually, this will come from the user's Photo library
+    var pieceViews = [PieceView]()
     var pannedPieceStartingPoint = CGPoint.zero
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let sides0: [Side] = [
+            Side(type: .edge),
+            Side.random(),
+            Side.random(),
+            Side(type: .edge),
+        ]
+        
         let sides1: [Side] = [
-            .init(type: .edge),
-            .init(type: .hole, tabPosition: 0.4),
-            .init(type: .hole, tabPosition: 0.6),
-            .init(type: .edge),
+            Side(type: .edge),
+            Side.random(),
+            Side.random(),
+            sides0[1].mate,
         ]
         
         let sides2: [Side] = [
-            .init(type: .edge),
-            .init(type: .tab, tabPosition: 0.6),
-            .init(type: .tab, tabPosition: 0.5),
-            .init(type: .tab, tabPosition: (1 - sides1[1].tabPosition)),
+            sides0[2].mate,
+            Side.random(),
+            Side.random(),
+            Side(type: .edge),
         ]
         
         let sides3: [Side] = [
-            .init(type: .tab, tabPosition: (1 - sides1[2].tabPosition)),
-            .init(type: .hole, tabPosition: 0.4),
-            .init(type: .hole, tabPosition: 0.4),
-            .init(type: .edge),
-        ]
-        
-        let sides4: [Side] = [
-            .init(type: .hole, tabPosition: (1 - sides2[2].tabPosition)),
-            .init(type: .hole, tabPosition: 0.6),
-            .init(type: .tab, tabPosition: 0.5),
-            .init(type: .tab, tabPosition: (1 - sides3[1].tabPosition)),
+            sides1[2].mate,
+            Side.random(),
+            Side.random(),
+            sides2[1].mate,
         ]
         
         let overlap = PuzzleConst.outerSize - PuzzleConst.innerSize
         let tiles = image.extractTiles(with: CGSize(width: PuzzleConst.outerSize, height: PuzzleConst.outerSize), overlap: overlap)!
 
-        let row = 12
-        let col = 15
-        let pieceView1 = createPieceView(sides: sides1, image: tiles[row][col])
-        let pieceView2 = createPieceView(sides: sides2, image: tiles[row][col+1])
-        let pieceView3 = createPieceView(sides: sides3, image: tiles[row+1][col])
-        let pieceView4 = createPieceView(sides: sides4, image: tiles[row+1][col+1])
+        let row = Int(0.58 * Double(tiles.count))
+        let col = Int(0.54 * Double(tiles[0].count))
+        pieceViews.append(createPieceView(sides: sides0, image: tiles[row][col]))
+        pieceViews.append(createPieceView(sides: sides1, image: tiles[row][col+1]))
+        pieceViews.append(createPieceView(sides: sides2, image: tiles[row+1][col]))
+        pieceViews.append(createPieceView(sides: sides3, image: tiles[row+1][col+1]))
 
-        pieceView1.center = CGPoint(x: 150, y: 300)
-        pieceView2.center = pieceView1.center.offsetBy(dx: PuzzleConst.innerSize, dy: 0)
-        pieceView3.center = pieceView1.center.offsetBy(dx: 0, dy: PuzzleConst.innerSize)
-        pieceView4.center = pieceView1.center.offsetBy(dx: PuzzleConst.innerSize, dy: PuzzleConst.innerSize)
+        pieceViews[0].center = CGPoint(x: 150, y: 300)
+        pieceViews[1].center = pieceViews[0].center.offsetBy(dx: PuzzleConst.innerSize, dy: 0)
+        pieceViews[2].center = pieceViews[0].center.offsetBy(dx: 0, dy: PuzzleConst.innerSize)
+        pieceViews[3].center = pieceViews[0].center.offsetBy(dx: PuzzleConst.innerSize, dy: PuzzleConst.innerSize)
     }
     
     func createPieceView(sides: [Side], image: UIImage) -> PieceView {

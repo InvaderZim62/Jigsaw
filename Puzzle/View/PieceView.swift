@@ -7,7 +7,7 @@
 //  PieceView is the inner portion of the puzzle piece.  It includes a larger subview for drawing the
 //  complete piece.  It was done this way, so a pan gesture can be attached to the inner portion of
 //  the piece, yet still move the whole picture.  If a pan gesture is attached to the complete puzzle
-//  piece, the pan gesture would overlap, since the puzzle pieces overlap when complete.
+//  piece, the pan gestures would overlap, since the puzzle pieces overlap when connected.
 //
 //  Note: PieceView must be square, for the drawing and clipping of the image to work.
 //
