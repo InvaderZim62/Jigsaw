@@ -4,6 +4,8 @@
 //
 //  Created by Phil Stern on 4/21/23.
 //
+//  Note: PieceView must be square.
+//
 
 import UIKit
 
@@ -44,8 +46,8 @@ class PieceView: UIImageView {
     }
 
     // create path for one edge at a time, rotating the path 90 deg between each;
-    // path will pick where the previous left off, but the coordinates will be
-    // relative to the new orientation
+    // path will pick up where the previous left off, but the coordinates will be
+    // relative to the new orientation (PieceView must be square).
     func pathForSides(_ sides: [Side]) -> UIBezierPath {
         var outline = UIBezierPath()
         for index in 0..<4 {

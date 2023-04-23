@@ -21,6 +21,18 @@ extension CGPoint {
     func offsetBy(dx: CGFloat, dy: CGFloat) -> CGPoint {
         return CGPoint(x: x + dx, y: y + dy)
     }
+    
+    func limitedToView(_ view: UIView) -> CGPoint {
+        let limitedX = min(view.bounds.maxX, max(view.bounds.minX, x))  // use bounds, since pawnViews are subviews of the view passed in (boardView)
+        let limitedY = min(view.bounds.maxY, max(view.bounds.minY, y))  // use frame, if pawnViews are subviews of SorryViewController.view
+        return CGPoint(x: limitedX, y: limitedY)
+    }
+    
+    func limitedToView(_ view: UIView, withHorizontalInset horizontalInset: CGFloat, andVerticalInset verticalInset: CGFloat) -> CGPoint {
+        let limitedX = min(view.bounds.maxX - horizontalInset, max(view.bounds.minX + horizontalInset, x))
+        let limitedY = min(view.bounds.maxY - verticalInset, max(view.bounds.minY + verticalInset, y))
+        return CGPoint(x: limitedX, y: limitedY)
+    }
 }
 
 extension UIImage {
