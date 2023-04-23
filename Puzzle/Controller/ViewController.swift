@@ -9,7 +9,8 @@ import UIKit
 
 struct PuzzleConst {
     static let outerSize: CGFloat = 200  // including tabs
-    static let innerSize = 0.56 * PuzzleConst.outerSize  // excluding tabs
+    static let innerRatio: CGFloat = 0.56
+    static let innerSize = innerRatio * PuzzleConst.outerSize  // excluding tabs
     static let inset = (PuzzleConst.outerSize - PuzzleConst.innerSize) / 2
 }
 
@@ -30,7 +31,7 @@ class ViewController: UIViewController {
         
         let sides2: [Side] = [
             .init(type: .edge),
-            .init(type: .tab, tabPosition: 0.4),
+            .init(type: .tab, tabPosition: 0.6),
             .init(type: .tab, tabPosition: 0.5),
             .init(type: .tab, tabPosition: (1 - sides1[1].tabPosition)),
         ]
@@ -59,28 +60,24 @@ class ViewController: UIViewController {
         let pieceView3 = createPieceView(sides: sides3, image: tiles[row+1][col])
         let pieceView4 = createPieceView(sides: sides4, image: tiles[row+1][col+1])
 
-        // to access sides, use: (pieceView1.subviews[0] as? PieceView).sides
         pieceView1.center = CGPoint(x: 150, y: 300)
         pieceView2.center = pieceView1.center.offsetBy(dx: PuzzleConst.innerSize, dy: 0)
         pieceView3.center = pieceView1.center.offsetBy(dx: 0, dy: PuzzleConst.innerSize)
         pieceView4.center = pieceView1.center.offsetBy(dx: PuzzleConst.innerSize, dy: PuzzleConst.innerSize)
     }
     
-    func createPieceView(sides: [Side], image: UIImage) -> UIView {
-        let pannableView = UIView(frame: CGRect(x: 0, y: 0, width: PuzzleConst.innerSize, height: PuzzleConst.innerSize))
-        
-        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
-        pannableView.isUserInteractionEnabled = true
-        pannableView.addGestureRecognizer(panGesture)
-        
+    func createPieceView(sides: [Side], image: UIImage) -> PieceView {
         let pieceView = PieceView(sides: sides, image: image)
-        pieceView.frame = CGRect(x: 0, y: 0, width: PuzzleConst.outerSize, height: PuzzleConst.outerSize)
+        pieceView.frame = CGRect(x: 0, y: 0, width: PuzzleConst.innerSize, height: PuzzleConst.innerSize)
         pieceView.center = CGPoint(x: PuzzleConst.innerSize / 2, y: PuzzleConst.innerSize / 2)
 
-        pannableView.addSubview(pieceView)
-        view.addSubview(pannableView)
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
+        pieceView.isUserInteractionEnabled = true
+        pieceView.addGestureRecognizer(panGesture)
 
-        return pannableView
+        view.addSubview(pieceView)
+
+        return pieceView
     }
 
     @objc private func handlePan(panRecognizer: UIPanGestureRecognizer) {

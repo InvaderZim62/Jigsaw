@@ -4,7 +4,12 @@
 //
 //  Created by Phil Stern on 4/21/23.
 //
-//  Note: PieceView must be square.
+//  PieceView is the inner portion of the puzzle piece.  It includes a larger subview for drawing the
+//  complete piece.  It was done this way, so a pan gesture can be attached to the inner portion of
+//  the piece, yet still move the whole picture.  If a pan gesture is attached to the complete puzzle
+//  piece, the pan gesture would overlap, since the puzzle pieces overlap when complete.
+//
+//  Note: PieceView must be square, for the drawing and clipping of the image to work.
 //
 
 import UIKit
@@ -16,14 +21,19 @@ struct PieceConst {
     static let lineWidthFactor: CGFloat = 0.015
 }
 
-class PieceView: UIImageView {
+class PieceView: UIView {
     
     var sides: [Side]
     
+    private var pictureView = UIImageView()
+    
     init(sides: [Side], image: UIImage) {
         self.sides = sides
-        super.init(image: image)
-        self.image = image.shapeImageTo(pathForSides(sides))
+        super.init(frame: CGRect.zero)  // compiler complains if this isn't here
+        pictureView.frame = CGRect(x: 0, y: 0, width: PuzzleConst.outerSize, height: PuzzleConst.outerSize)
+        pictureView.center = CGPoint(x: PuzzleConst.innerSize / 2, y: PuzzleConst.innerSize / 2)
+        pictureView.image = image.shapeImageTo(pathForSides(sides))
+        addSubview(pictureView)
     }
     
     required init?(coder: NSCoder) {
@@ -32,11 +42,12 @@ class PieceView: UIImageView {
     
     private var first = true
 
-    private lazy var frameCenter = CGPoint(x: frame.width / 2.0, y: frame.height / 2.0)
-    private lazy var radius = PieceConst.radiusFactor * bounds.width
-    private lazy var neckWidth = PieceConst.neckWidthFactor * bounds.width
-    private lazy var cpLength = PieceConst.controlPointLengthFactor * bounds.width
-    private lazy var lineWidth = PieceConst.lineWidthFactor * bounds.width
+    // lazy, since they use bounds (ok to use during init, since not using constraints)
+    private lazy var frameCenter = CGPoint(x: pictureView.frame.width / 2.0, y: pictureView.frame.height / 2.0)
+    private lazy var radius = PieceConst.radiusFactor * pictureView.bounds.width
+    private lazy var neckWidth = PieceConst.neckWidthFactor * pictureView.bounds.width
+    private lazy var cpLength = PieceConst.controlPointLengthFactor * pictureView.bounds.width
+    private lazy var lineWidth = PieceConst.lineWidthFactor * pictureView.bounds.width
     
     // rotate about point by translating (from 0,0) to point, rotating, and translating back
     private func transformToRotate(angle: Double, about point: CGPoint) -> CGAffineTransform {
@@ -58,7 +69,7 @@ class PieceView: UIImageView {
 
     private func addSide(_ side: Side, to path: UIBezierPath) -> UIBezierPath {
         let leftShoulder = CGPoint(x: PuzzleConst.inset, y: PuzzleConst.inset)
-        let rightShoulder = CGPoint(x: bounds.width - PuzzleConst.inset, y: PuzzleConst.inset)
+        let rightShoulder = CGPoint(x: pictureView.bounds.width - PuzzleConst.inset, y: PuzzleConst.inset)
 
         if first {
             first = false
