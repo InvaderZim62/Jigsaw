@@ -26,6 +26,21 @@ extension Double {
         }
         return wrappedAngle
     }
+    
+    // rounds to nearest 90 degrees (assumes self is 0 to 360 deg)
+    var round90: Double {
+        if self < 45 {
+            return 0
+        } else if self < 135 {
+            return 90
+        } else if self < 225 {
+            return 180
+        } else if self < 315 {
+            return 270
+        } else {
+            return 0
+        }
+    }
 }
 
 extension CGFloat {

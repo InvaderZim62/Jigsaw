@@ -108,14 +108,11 @@ class ViewController: UIViewController {
 
     // MARK: - Gestures
     
-    var count = 0
-    
     @objc private func handlePan(recognizer: UIPanGestureRecognizer) {
         if let pannedPieceView = recognizer.view as? PieceView {
             let pannedPiece = pieceFor(pannedPieceView)  // copy of piece (don't manipulate)
             switch recognizer.state {
             case .began:
-                count = 0
                 pannedPieceInitialCenter = pannedPieceView.center
                 view.bringSubviewToFront(pannedPieceView)
                 fallthrough
@@ -141,10 +138,8 @@ class ViewController: UIViewController {
                             // panned piece is aligned horizontally or vertically to potential target
                             if targetPiece.sides[targetSideIndex].mate == pannedPiece.sides[pannedPieceSideIndex] {
                                 // panned piece and target have complementary sides facing each other
-                                count += 1
-                                print("\(count)) target side: \(targetSideIndex), panned piece side: \(pannedPieceSideIndex)")
-                                pannedPieceView.center = targetPieceView.center + CGPoint(x: PuzzleConst.innerSize * sin(bearingToPannedPiece.rads),
-                                                                                          y: -PuzzleConst.innerSize * cos(bearingToPannedPiece.rads))
+                                pannedPieceView.center = targetPieceView.center + CGPoint(x: PuzzleConst.innerSize * sin(bearingToPannedPiece.round90.rads),
+                                                                                          y: -PuzzleConst.innerSize * cos(bearingToPannedPiece.round90.rads))
                             }
                         }
                     }
@@ -180,7 +175,7 @@ class ViewController: UIViewController {
         let piece = pieceFor(pieceView)
         return pieces.index(matching: piece)!
     }
-
+    
     func sideIndexFor(bearing: Double) -> Int? {  // assumes bearing from 0 to 360 degrees
         let threshold = 5.0
         if bearing < threshold || bearing > 360 - threshold {
