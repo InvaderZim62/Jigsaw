@@ -17,6 +17,18 @@ extension Double {
     }
 }
 
+//extension CGFloat {
+//    var degs: CGFloat {
+//        return self * 180.0 / CGFloat.pi
+//    }
+//}
+
+extension Dictionary where Value: Equatable {
+    func someKey(forValue val: Value) -> Key? {  // usage: let key = dict.someKey(forValue: val)
+        first(where: { $1 == val })?.key
+    }
+}
+
 extension CGPoint {
     static func +(lhs: CGPoint, rhs: CGPoint) -> CGPoint {
         return CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
@@ -36,6 +48,13 @@ extension CGPoint {
         let limitedX = min(view.bounds.maxX - horizontalInset, max(view.bounds.minX + horizontalInset, x))
         let limitedY = min(view.bounds.maxY - verticalInset, max(view.bounds.minY + verticalInset, y))
         return CGPoint(x: limitedX, y: limitedY)
+    }
+}
+
+// IDable replicates the Identifiable protocol (available on iOS 13+) for older devices
+extension Collection where Element: IDable {
+    func index(matching element: Element) -> Self.Index? {
+        firstIndex(where: { $0.id == element.id })
     }
 }
 

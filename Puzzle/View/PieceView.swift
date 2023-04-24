@@ -25,8 +25,8 @@ class PieceView: UIView {
     
     var sides: [Side]
     
-    var angle: CGFloat {
-        return atan2(self.transform.b, self.transform.a)  // +/- pi
+    var rotation: CGFloat {
+        atan2(self.transform.b, self.transform.a)  // +/- pi, zero is up, pos is clockwise
     }
 
     private var pictureView = UIImageView()

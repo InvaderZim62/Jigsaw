@@ -17,12 +17,15 @@ struct PuzzleConst {
 class ViewController: UIViewController {
     
     let image = UIImage(named: "tree")!  // eventually, this will come from the user's Photo library
-    var pieceViews = [PieceView]()
+    var pieces = [Piece]()
+    var pieceViews = [Piece: PieceView]()
     var panStartingPoint = CGPoint.zero
+    
+    // MARK: - Start of code
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+                
         let sides0: [Side] = [
             Side(type: .edge),
             Side.random(),
@@ -51,22 +54,29 @@ class ViewController: UIViewController {
             sides2[1].mate,
         ]
         
+        pieces.append(Piece(sides: sides0))
+        pieces.append(Piece(sides: sides1))
+        pieces.append(Piece(sides: sides2))
+        pieces.append(Piece(sides: sides3))
+
         let overlap = PuzzleConst.outerSize - PuzzleConst.innerSize
         let tiles = image.extractTiles(with: CGSize(width: PuzzleConst.outerSize, height: PuzzleConst.outerSize), overlap: overlap)!
 
-        let row = Int(0.58 * Double(tiles.count))
+        let row = Int(0.58 * Double(tiles.count))  // branching part of tree
         let col = Int(0.54 * Double(tiles[0].count))
-        pieceViews.append(createPieceView(sides: sides0, image: tiles[row][col]))
-        pieceViews.append(createPieceView(sides: sides1, image: tiles[row][col+1]))
-        pieceViews.append(createPieceView(sides: sides2, image: tiles[row+1][col]))
-        pieceViews.append(createPieceView(sides: sides3, image: tiles[row+1][col+1]))
+        
+        pieceViews[pieces[0]] = createPieceView(sides: pieces[0].sides, image: tiles[row][col])
+        pieceViews[pieces[1]] = createPieceView(sides: pieces[1].sides, image: tiles[row][col+1])
+        pieceViews[pieces[2]] = createPieceView(sides: pieces[2].sides, image: tiles[row+1][col])
+        pieceViews[pieces[3]] = createPieceView(sides: pieces[3].sides, image: tiles[row+1][col+1])
 
-        pieceViews[0].center = CGPoint(x: 150, y: 300)
-        pieceViews[1].center = pieceViews[0].center.offsetBy(dx: PuzzleConst.innerSize, dy: 0)
-        pieceViews[2].center = pieceViews[0].center.offsetBy(dx: 0, dy: PuzzleConst.innerSize)
-        pieceViews[3].center = pieceViews[0].center.offsetBy(dx: PuzzleConst.innerSize, dy: PuzzleConst.innerSize)
+        pieceViews[pieces[0]]!.center = CGPoint(x: 150, y: 300)
+        pieceViews[pieces[1]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: PuzzleConst.innerSize, dy: 0)
+        pieceViews[pieces[2]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: 0, dy: PuzzleConst.innerSize)
+        pieceViews[pieces[3]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: PuzzleConst.innerSize, dy: PuzzleConst.innerSize)
     }
     
+    // create pieceView with pan, double-tap, and single-tap gestures; add to view
     func createPieceView(sides: [Side], image: UIImage) -> PieceView {
         let pieceView = PieceView(sides: sides, image: image)
         pieceView.frame = CGRect(x: 0, y: 0, width: PuzzleConst.innerSize, height: PuzzleConst.innerSize)
@@ -90,6 +100,8 @@ class ViewController: UIViewController {
         return pieceView
     }
 
+    // MARK: - Gestures
+
     @objc private func handlePan(recognizer: UIPanGestureRecognizer) {
         if let pieceView = recognizer.view as? PieceView {
             if recognizer.state == .began {
@@ -108,14 +120,23 @@ class ViewController: UIViewController {
         }
     }
     
-    // rotate piece +90 degrees for single-tap, -90 degrees for double-tap
+    // rotate piece +90 degrees for single-tap, -90 degrees for double-tap (animated)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
         if let pieceView = recognizer.view as? PieceView {
             view.bringSubviewToFront(pieceView)
             UIView.animate(withDuration: 0.2, animations: {
                 pieceView.transform = pieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
             })
+            // update model
+            pieces[pieceIndex(from: pieceView)].rotation = pieceView.rotation
         }
+    }
+    
+    // MARK: - Utilities
+    
+    func pieceIndex(from pieceView: PieceView) -> Int {
+        let piece = pieceViews.someKey(forValue: pieceView)!  // copy of struct (don't manipulate)
+        return pieces.index(matching: piece)!
     }
 
     // return nearby piece and which side of nearby piece is the mate
