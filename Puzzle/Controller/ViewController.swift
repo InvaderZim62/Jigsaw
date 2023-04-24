@@ -23,7 +23,7 @@ class ViewController: UIViewController {
     var pannedPieceMatchingSide: Int?
     var targetPieceMatchingSide: Int?
 
-    @IBOutlet weak var playView: UIView!
+    @IBOutlet weak var boardView: UIView!
     
     // MARK: - Start of code
 
@@ -101,7 +101,7 @@ class ViewController: UIViewController {
         pieceView.addGestureRecognizer(singleTap)
         singleTap.require(toFail: doubleTap)  // don't fire singleTap, unless doubleTap fails (this slows down singleTap response)
 
-        playView.addSubview(pieceView)
+        boardView.addSubview(pieceView)
 
         return pieceView
     }
@@ -110,26 +110,26 @@ class ViewController: UIViewController {
     
     @objc private func handlePan(recognizer: UIPanGestureRecognizer) {
         if let pannedPieceView = recognizer.view as? PieceView {
-            let pannedPiece = pieceFor(pannedPieceView)  // copy of piece (don't manipulate)
+            let (pannedPiece, pannedPieceIndex) = pieceIndexFor(pannedPieceView)  // copy of piece (don't manipulate)
             switch recognizer.state {
             case .began:
                 pannedPieceInitialCenter = pannedPieceView.center
-                view.bringSubviewToFront(pannedPieceView)
+                boardView.bringSubviewToFront(pannedPieceView)
                 fallthrough
             case .changed:
                 // move panned piece, limited to edges of screen
-                let translation = recognizer.translation(in: playView)
+                let translation = recognizer.translation(in: boardView)
                 let edgeInset = PuzzleConst.innerSize / 2
                 pannedPieceView.center = (pannedPieceInitialCenter + translation)
-                    .limitedToView(playView, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
+                    .limitedToView(boardView, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
                 
                 let targetPieceViews = pieceViews.filter { $0.value != pannedPieceView }
                 for targetPieceView in targetPieceViews.values {
-                    let targetPiece = pieceFor(targetPieceView)
+                    let (targetPiece, targetPieceIndex) = pieceIndexFor(targetPieceView)
                     let distanceToTarget = pannedPieceView.center.distance(from: targetPieceView.center)
                     if distanceToTarget < 1.1 * PuzzleConst.innerSize &&
                         distanceToTarget > 0.9 * PuzzleConst.innerSize {  // may be more than one (will use first)
-                        // panned piece is near outer edge of potential target
+                        // panned piece is aligned horizontally or vertically to potential target within threshold
                         let bearingToPannedPiece = targetPieceView.center.bearing(to: pannedPieceView.center)
                         let bearingInTargetFrame = (bearingToPannedPiece - targetPieceView.rotation).wrap360
                         let bearingInPannedPieceFrame = (bearingToPannedPiece + 180 - pannedPieceView.rotation).wrap360
@@ -137,16 +137,19 @@ class ViewController: UIViewController {
                            let pannedPieceSideIndex = sideIndexFor(bearing: bearingInPannedPieceFrame) {
                             // panned piece is aligned horizontally or vertically to potential target
                             if targetPiece.sides[targetSideIndex].mate == pannedPiece.sides[pannedPieceSideIndex] {
-                                // panned piece and target have complementary sides facing each other
+                                // panned piece and target have complementary sides facing each other (snap them together)
+                                print("panned piece side: \(pannedPieceSideIndex), target side: \(targetSideIndex)")
                                 pannedPieceView.center = targetPieceView.center + CGPoint(x: PuzzleConst.innerSize * sin(bearingToPannedPiece.round90.rads),
                                                                                           y: -PuzzleConst.innerSize * cos(bearingToPannedPiece.round90.rads))
+                                pieces[targetPieceIndex].sides[targetSideIndex].isConnected = true
+                                pieces[pannedPieceIndex].sides[pannedPieceSideIndex].isConnected = true
                             }
                         }
                     }
                 }
                 
             case .ended:
-                print("pan ended")
+                print("pan ended")  // check if puzzle is complete?
             default:
                 break
             }
@@ -156,12 +159,12 @@ class ViewController: UIViewController {
     // rotate piece +90 degrees for single-tap, -90 degrees for double-tap (animated)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
         if let tappedPieceView = recognizer.view as? PieceView {
-            view.bringSubviewToFront(tappedPieceView)
+            boardView.bringSubviewToFront(tappedPieceView)
             UIView.animate(withDuration: 0.2, animations: {
                 tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
             })
             // update model
-            pieces[pieceIndexFor(tappedPieceView)].rotation = tappedPieceView.rotation
+            pieces[pieceIndexFor(tappedPieceView).1].rotation = tappedPieceView.rotation
         }
     }
     
@@ -171,11 +174,12 @@ class ViewController: UIViewController {
         pieceViews.someKey(forValue: pieceView)!  // copy of piece (don't manipulate)
     }
     
-    func pieceIndexFor(_ pieceView: PieceView) -> Int {
+    func pieceIndexFor(_ pieceView: PieceView) -> (Piece, Int) {
         let piece = pieceFor(pieceView)
-        return pieces.index(matching: piece)!
+        let pieceIndex = pieces.index(matching: piece)!
+        return (piece, pieceIndex)
     }
-    
+
     func sideIndexFor(bearing: Double) -> Int? {  // assumes bearing from 0 to 360 degrees
         let threshold = 5.0
         if bearing < threshold || bearing > 360 - threshold {

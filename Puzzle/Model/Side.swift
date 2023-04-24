@@ -26,7 +26,7 @@ struct Side {
     }
     
     static func == (lhs: Side, rhs: Side) -> Bool {
-        lhs.type == rhs.type && abs(lhs.tabPosition - rhs.tabPosition) < 0.1
+        lhs.type == rhs.type && abs(lhs.tabPosition - rhs.tabPosition) < 0.09
     }
 }
 

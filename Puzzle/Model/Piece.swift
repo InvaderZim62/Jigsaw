@@ -13,9 +13,13 @@ protocol IDable {
 }
 
 struct Piece: IDable, Hashable {  // IDable for index(matching:) in extension Collection, Hashable to use as dictionary key
-    let sides: [Side]
+    var sides: [Side]
     var id = UUID()
     var rotation = 0.0  // degrees, zero is up, pos is clockwise
+    
+    var isConnected: Bool {
+        sides.filter { $0.isConnected }.count > 0
+    }
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
