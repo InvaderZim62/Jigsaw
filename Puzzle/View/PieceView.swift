@@ -25,6 +25,10 @@ class PieceView: UIView {
     
     var sides: [Side]
     
+    var angle: CGFloat {
+        return atan2(self.transform.b, self.transform.a)  // +/- pi
+    }
+
     private var pictureView = UIImageView()
     
     init(sides: [Side], image: UIImage) {

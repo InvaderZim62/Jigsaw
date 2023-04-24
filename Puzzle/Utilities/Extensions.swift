@@ -11,6 +11,10 @@ extension Double {
     var rads: CGFloat {
         return CGFloat(self) * CGFloat.pi / 180.0
     }
+    
+    var CGrads: CGFloat {
+        return CGFloat(self * .pi / 180)
+    }
 }
 
 extension CGPoint {
