@@ -9,19 +9,30 @@ import UIKit
 
 extension Double {
     var rads: CGFloat {
-        return CGFloat(self) * CGFloat.pi / 180.0
+        CGFloat(self) * CGFloat.pi / 180.0
     }
     
     var CGrads: CGFloat {
-        return CGFloat(self * .pi / 180)
+        CGFloat(self * .pi / 180)
+    }
+    
+    // converts angle to 0 - 360
+    var wrap360: Double {
+        var wrappedAngle = self
+        if self >= 360.0 {
+            wrappedAngle -= 360.0
+        } else if self < 0 {
+            wrappedAngle += 360.0
+        }
+        return wrappedAngle
     }
 }
 
-//extension CGFloat {
-//    var degs: CGFloat {
-//        return self * 180.0 / CGFloat.pi
-//    }
-//}
+extension CGFloat {
+    var degs: Double {
+        Double(self) * 180 / Double.pi
+    }
+}
 
 extension Dictionary where Value: Equatable {
     func someKey(forValue val: Value) -> Key? {  // usage: let key = dict.someKey(forValue: val)
@@ -31,13 +42,22 @@ extension Dictionary where Value: Equatable {
 
 extension CGPoint {
     static func +(lhs: CGPoint, rhs: CGPoint) -> CGPoint {
-        return CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
+        CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
+    }
+    
+    func distance(from point: CGPoint) -> Double {
+        sqrt(pow((self.x - point.x), 2) + pow((self.y - point.y), 2))
     }
 
     func offsetBy(dx: CGFloat, dy: CGFloat) -> CGPoint {
-        return CGPoint(x: x + dx, y: y + dy)
+        CGPoint(x: x + dx, y: y + dy)
     }
     
+    // return bearing from 0 to 360, where 0 is up, positive is clockwise
+    func bearing(to point: CGPoint) -> Double {
+        (atan2(Double(point.x - self.x), Double(-point.y + self.y)) * 180 / Double.pi).wrap360
+    }
+
     func limitedToView(_ view: UIView) -> CGPoint {
         let limitedX = min(view.bounds.maxX, max(view.bounds.minX, x))  // use bounds, since pawnViews are subviews of the view passed in (boardView)
         let limitedY = min(view.bounds.maxY, max(view.bounds.minY, y))  // use frame, if pawnViews are subviews of SorryViewController.view

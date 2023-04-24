@@ -22,7 +22,11 @@ struct Side {
     }
 
     static func random() -> Side {
-        Side(type: Type.randomTab(), tabPosition: Double.random(in: 0.4...0.6))  // pws: may want to truncate tabPosition to two decimal places
+        Side(type: Type.randomTab(), tabPosition: round(100 * Double.random(in: 0.4...0.6)) / 100)  // rounded to 2 decimal places
+    }
+    
+    static func == (lhs: Side, rhs: Side) -> Bool {
+        lhs.type == rhs.type && lhs.tabPosition == rhs.tabPosition
     }
 }
 

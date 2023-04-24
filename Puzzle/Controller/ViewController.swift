@@ -8,7 +8,7 @@
 import UIKit
 
 struct PuzzleConst {
-    static let outerSize: CGFloat = 200  // including tabs
+    static let outerSize: CGFloat = 200  // size of puzzle piece, including tabs
     static let innerRatio: CGFloat = 0.56
     static let innerSize = innerRatio * PuzzleConst.outerSize  // excluding tabs
     static let inset = (PuzzleConst.outerSize - PuzzleConst.innerSize) / 2
@@ -20,7 +20,9 @@ class ViewController: UIViewController {
     var pieces = [Piece]()
     var pieceViews = [Piece: PieceView]()
     var pannedPieceInitialCenter = CGPoint.zero
-    
+    var pannedPieceMatchingSide: Int?
+    var targetPieceMatchingSide: Int?
+
     @IBOutlet weak var playView: UIView!
     
     // MARK: - Start of code
@@ -72,10 +74,12 @@ class ViewController: UIViewController {
         pieceViews[pieces[2]] = createPieceView(sides: pieces[2].sides, image: tiles[row+1][col])
         pieceViews[pieces[3]] = createPieceView(sides: pieces[3].sides, image: tiles[row+1][col+1])
 
-        pieceViews[pieces[0]]!.center = CGPoint(x: 150, y: 300)
-        pieceViews[pieces[1]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: PuzzleConst.innerSize, dy: 0)
-        pieceViews[pieces[2]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: 0, dy: PuzzleConst.innerSize)
-        pieceViews[pieces[3]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: PuzzleConst.innerSize, dy: PuzzleConst.innerSize)
+        let separation = 100.0
+
+        pieceViews[pieces[0]]!.center = CGPoint(x: 100, y: 200)
+        pieceViews[pieces[1]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: PuzzleConst.innerSize + separation, dy: 0)
+        pieceViews[pieces[2]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: 0, dy: PuzzleConst.innerSize + separation)
+        pieceViews[pieces[3]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: PuzzleConst.innerSize + separation, dy: PuzzleConst.innerSize + separation)
     }
     
     // create pieceView with pan, double-tap, and single-tap gestures; add to playView
@@ -103,21 +107,53 @@ class ViewController: UIViewController {
     }
 
     // MARK: - Gestures
-
+    
+    var count = 0
+    
     @objc private func handlePan(recognizer: UIPanGestureRecognizer) {
         if let pannedPieceView = recognizer.view as? PieceView {
-            if recognizer.state == .began {
+            let pannedPiece = pieceFor(pannedPieceView)  // copy of piece (don't manipulate)
+            switch recognizer.state {
+            case .began:
+                count = 0
                 pannedPieceInitialCenter = pannedPieceView.center
                 view.bringSubviewToFront(pannedPieceView)
-            }
-            
-            // move panned piece, limited to edges of screen
-            let translation = recognizer.translation(in: playView)
-            let edgeInset = PuzzleConst.innerSize / 2
-            pannedPieceView.center = (pannedPieceInitialCenter + translation)
-                .limitedToView(playView, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
-            
-            if recognizer.state == .ended {
+                fallthrough
+            case .changed:
+                // move panned piece, limited to edges of screen
+                let translation = recognizer.translation(in: playView)
+                let edgeInset = PuzzleConst.innerSize / 2
+                pannedPieceView.center = (pannedPieceInitialCenter + translation)
+                    .limitedToView(playView, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
+                
+                let targetPieceViews = pieceViews.filter { $0.value != pannedPieceView }
+                for targetPieceView in targetPieceViews.values {
+                    let targetPiece = pieceFor(targetPieceView)
+                    let distanceToTarget = pannedPieceView.center.distance(from: targetPieceView.center)
+                    if distanceToTarget < 1.1 * PuzzleConst.innerSize &&
+                        distanceToTarget > 0.9 * PuzzleConst.innerSize {  // may be more than one (will use first)
+                        // panned piece is near outer edge of potential target
+                        let bearingToPannedPiece = targetPieceView.center.bearing(to: pannedPieceView.center)
+                        let bearingInTargetFrame = (bearingToPannedPiece - targetPieceView.rotation).wrap360
+                        let bearingInPannedPieceFrame = (bearingToPannedPiece + 180 - pannedPieceView.rotation).wrap360
+                        if let targetSideIndex = sideIndexFor(bearing: bearingInTargetFrame),
+                           let pannedPieceSideIndex = sideIndexFor(bearing: bearingInPannedPieceFrame) {
+                            // panned piece is aligned horizontally or vertically to potential target
+                            if targetPiece.sides[targetSideIndex].mate == pannedPiece.sides[pannedPieceSideIndex] {
+                                // panned piece and target have complementary sides facing each other
+                                count += 1
+                                print("\(count)) target side: \(targetSideIndex), panned piece side: \(pannedPieceSideIndex)")
+                                pannedPieceView.center = targetPieceView.center + CGPoint(x: PuzzleConst.innerSize * sin(bearingToPannedPiece.rads),
+                                                                                          y: -PuzzleConst.innerSize * cos(bearingToPannedPiece.rads))
+                            }
+                        }
+                    }
+                }
+                
+            case .ended:
+                print("pan ended")
+            default:
+                break
             }
         }
     }
@@ -130,19 +166,33 @@ class ViewController: UIViewController {
                 tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
             })
             // update model
-            pieces[pieceIndex(from: tappedPieceView)].rotation = tappedPieceView.rotation
+            pieces[pieceIndexFor(tappedPieceView)].rotation = tappedPieceView.rotation
         }
     }
     
     // MARK: - Utilities
     
-    func pieceIndex(from pieceView: PieceView) -> Int {
-        let piece = pieceViews.someKey(forValue: pieceView)!  // copy of struct (don't manipulate)
+    func pieceFor(_ pieceView: PieceView) -> Piece {
+        pieceViews.someKey(forValue: pieceView)!  // copy of piece (don't manipulate)
+    }
+    
+    func pieceIndexFor(_ pieceView: PieceView) -> Int {
+        let piece = pieceFor(pieceView)
         return pieces.index(matching: piece)!
     }
 
-    // return nearby piece and which side of nearby piece is the mate
-//    func nearbyMateFor(_ pieceView: PieceView) -> (PieceView, Int) {
-//
-//    }
+    func sideIndexFor(bearing: Double) -> Int? {  // assumes bearing from 0 to 360 degrees
+        let threshold = 5.0
+        if bearing < threshold || bearing > 360 - threshold {
+            return 0
+        } else if abs(bearing - 90) < threshold {
+            return 1
+        } else if abs(bearing - 180) < threshold {
+            return 2
+        } else if abs(bearing - 270) < threshold {
+            return 3
+        } else {
+            return nil
+        }
+    }
 }
