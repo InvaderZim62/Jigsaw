@@ -19,7 +19,9 @@ class ViewController: UIViewController {
     let image = UIImage(named: "tree")!  // eventually, this will come from the user's Photo library
     var pieces = [Piece]()
     var pieceViews = [Piece: PieceView]()
-    var panStartingPoint = CGPoint.zero
+    var pannedPieceInitialCenter = CGPoint.zero
+    
+    @IBOutlet weak var playView: UIView!
     
     // MARK: - Start of code
 
@@ -76,7 +78,7 @@ class ViewController: UIViewController {
         pieceViews[pieces[3]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: PuzzleConst.innerSize, dy: PuzzleConst.innerSize)
     }
     
-    // create pieceView with pan, double-tap, and single-tap gestures; add to view
+    // create pieceView with pan, double-tap, and single-tap gestures; add to playView
     func createPieceView(sides: [Side], image: UIImage) -> PieceView {
         let pieceView = PieceView(sides: sides, image: image)
         pieceView.frame = CGRect(x: 0, y: 0, width: PuzzleConst.innerSize, height: PuzzleConst.innerSize)
@@ -95,7 +97,7 @@ class ViewController: UIViewController {
         pieceView.addGestureRecognizer(singleTap)
         singleTap.require(toFail: doubleTap)  // don't fire singleTap, unless doubleTap fails (this slows down singleTap response)
 
-        view.addSubview(pieceView)
+        playView.addSubview(pieceView)
 
         return pieceView
     }
@@ -103,17 +105,17 @@ class ViewController: UIViewController {
     // MARK: - Gestures
 
     @objc private func handlePan(recognizer: UIPanGestureRecognizer) {
-        if let pieceView = recognizer.view as? PieceView {
+        if let pannedPieceView = recognizer.view as? PieceView {
             if recognizer.state == .began {
-                panStartingPoint = pieceView.center  // pws: is there a version that doesn't require "startingPoint"? (see Tantrix)
-                view.bringSubviewToFront(pieceView)
+                pannedPieceInitialCenter = pannedPieceView.center
+                view.bringSubviewToFront(pannedPieceView)
             }
             
             // move panned piece, limited to edges of screen
-            let translation = recognizer.translation(in: view)
+            let translation = recognizer.translation(in: playView)
             let edgeInset = PuzzleConst.innerSize / 2
-            pieceView.center = (panStartingPoint + translation)
-                .limitedToView(view, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
+            pannedPieceView.center = (pannedPieceInitialCenter + translation)
+                .limitedToView(playView, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
             
             if recognizer.state == .ended {
             }
@@ -122,13 +124,13 @@ class ViewController: UIViewController {
     
     // rotate piece +90 degrees for single-tap, -90 degrees for double-tap (animated)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
-        if let pieceView = recognizer.view as? PieceView {
-            view.bringSubviewToFront(pieceView)
+        if let tappedPieceView = recognizer.view as? PieceView {
+            view.bringSubviewToFront(tappedPieceView)
             UIView.animate(withDuration: 0.2, animations: {
-                pieceView.transform = pieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
+                tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
             })
             // update model
-            pieces[pieceIndex(from: pieceView)].rotation = pieceView.rotation
+            pieces[pieceIndex(from: tappedPieceView)].rotation = tappedPieceView.rotation
         }
     }
     
