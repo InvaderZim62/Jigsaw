@@ -94,6 +94,18 @@ extension Collection where Element: IDable {
 }
 
 extension UIImage {
+    // resize image to fit container, without changing aspect ratio
+    // from: https://stackoverflow.com/questions/44715322
+    func resizedTo(_ newSize: CGSize) -> UIImage {
+        UIGraphicsBeginImageContext(newSize)
+        
+        draw(in: CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height))
+        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        
+        return resizedImage
+    }
+
     // from: https://stackoverflow.com/questions/49853122
     func shapeImageTo(_ path: UIBezierPath) -> UIImage {
         UIGraphicsBeginImageContext(size)
@@ -136,7 +148,6 @@ extension UIImage {
             }
             tiles.append(tileRow)
         }
-
         return tiles
     }
 }

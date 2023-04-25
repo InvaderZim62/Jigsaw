@@ -8,15 +8,15 @@
 import UIKit
 
 struct PuzzleConst {
-    static let outerSize: CGFloat = 200  // size of puzzle piece, including tabs
+    static let targetPieceSize: CGFloat = 200  // size of puzzle piece, including tabs
     static let innerRatio: CGFloat = 0.56
-    static let innerSize = innerRatio * PuzzleConst.outerSize  // excluding tabs
-    static let inset = (PuzzleConst.outerSize - PuzzleConst.innerSize) / 2
 }
 
 class ViewController: UIViewController {
     
-    let image = UIImage(named: "tree")!  // eventually, this will come from the user's Photo library
+//    let image = UIImage(named: "tree")!  // eventually, this will come from the user's Photo library
+    let image = UIImage(named: "game")!
+    let globalData = GlobalData.sharedInstance
     var pieces = [Piece]()
     var pieceViews = [Piece: PieceView]()
     var pannedPieceInitialCenter = CGPoint.zero
@@ -63,8 +63,8 @@ class ViewController: UIViewController {
         pieces.append(Piece(sides: sides2))
         pieces.append(Piece(sides: sides3))
 
-        let overlap = PuzzleConst.outerSize - PuzzleConst.innerSize
-        let tiles = image.extractTiles(with: CGSize(width: PuzzleConst.outerSize, height: PuzzleConst.outerSize), overlap: overlap)!
+        let overlap = globalData.outerSize - globalData.innerSize
+        let tiles = image.extractTiles(with: CGSize(width: globalData.outerSize, height: globalData.outerSize), overlap: overlap)!
 
         let row = Int(0.58 * Double(tiles.count))  // branching part of tree
         let col = Int(0.54 * Double(tiles[0].count))
@@ -77,16 +77,48 @@ class ViewController: UIViewController {
         let separation = 100.0
 
         pieceViews[pieces[0]]!.center = CGPoint(x: 100, y: 200)
-        pieceViews[pieces[1]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: PuzzleConst.innerSize + separation, dy: 0)
-        pieceViews[pieces[2]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: 0, dy: PuzzleConst.innerSize + separation)
-        pieceViews[pieces[3]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: PuzzleConst.innerSize + separation, dy: PuzzleConst.innerSize + separation)
+        pieceViews[pieces[1]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: globalData.innerSize + separation, dy: 0)
+        pieceViews[pieces[2]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: 0, dy: globalData.innerSize + separation)
+        pieceViews[pieces[3]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: globalData.innerSize + separation, dy: globalData.innerSize + separation)
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+        
+        // resize image to fit boardView, without changing aspect ratio
+        let fitSize = sizeToFit(image, in: boardView)
+        
+        let tileCols = fitSize.width / PuzzleConst.targetPieceSize
+        let tileRows = fitSize.height / PuzzleConst.targetPieceSize
+
+        let resizedImage = image.resizedTo(fitSize)
+        
+        let wholeImageView = UIImageView(image: resizedImage)
+        wholeImageView.frame = CGRect(origin: CGPoint.zero, size: resizedImage.size)
+        wholeImageView.center = CGPoint(x: boardView.bounds.midX, y: boardView.bounds.midY)
+        wholeImageView.sizeToFit()
+        boardView.addSubview(wholeImageView)
+        
+    }
+    
+    func sizeToFit(_ image: UIImage, in container: UIView) -> CGSize {
+        let imageAspectRatio = image.size.width / image.size.height
+        let containerAspectRatio = container.bounds.size.width / container.bounds.size.height
+        if imageAspectRatio > containerAspectRatio {
+            return CGSize(width: container.bounds.size.width, height: container.bounds.size.width / imageAspectRatio)
+        } else {
+            return CGSize(width: container.bounds.size.height * imageAspectRatio, height: container.bounds.size.height)
+        }
+    }
+
     // create pieceView with pan, double-tap, and single-tap gestures; add to playView
     func createPieceView(sides: [Side], image: UIImage) -> PieceView {
         let pieceView = PieceView(sides: sides, image: image)
-        pieceView.frame = CGRect(x: 0, y: 0, width: PuzzleConst.innerSize, height: PuzzleConst.innerSize)
-        pieceView.center = CGPoint(x: PuzzleConst.innerSize / 2, y: PuzzleConst.innerSize / 2)
+        pieceView.frame = CGRect(x: 0, y: 0, width: globalData.innerSize, height: globalData.innerSize)
+        pieceView.center = CGPoint(x: globalData.innerSize / 2, y: globalData.innerSize / 2)
 
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
         pieceView.isUserInteractionEnabled = true
@@ -119,7 +151,7 @@ class ViewController: UIViewController {
             case .changed:
                 // move panned piece, limited to edges of screen
                 let translation = recognizer.translation(in: boardView)
-                let edgeInset = PuzzleConst.innerSize / 2
+                let edgeInset = globalData.innerSize / 2
                 pannedPieceView.center = (pannedPieceInitialCenter + translation)
                     .limitedToView(boardView, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
                 
@@ -127,8 +159,8 @@ class ViewController: UIViewController {
                 for targetPieceView in targetPieceViews.values {
                     let (targetPiece, targetPieceIndex) = pieceIndexFor(targetPieceView)
                     let distanceToTarget = pannedPieceView.center.distance(from: targetPieceView.center)
-                    if distanceToTarget < 1.1 * PuzzleConst.innerSize &&
-                        distanceToTarget > 0.9 * PuzzleConst.innerSize {  // may be more than one (will use first)
+                    if distanceToTarget < 1.1 * globalData.innerSize &&
+                        distanceToTarget > 0.9 * globalData.innerSize {  // may be more than one (will use first)
                         // panned piece is aligned horizontally or vertically to potential target within threshold
                         let bearingToPannedPiece = targetPieceView.center.bearing(to: pannedPieceView.center)
                         let bearingInTargetFrame = (bearingToPannedPiece - targetPieceView.rotation).wrap360
@@ -139,8 +171,8 @@ class ViewController: UIViewController {
                             if targetPiece.sides[targetSideIndex].mate == pannedPiece.sides[pannedPieceSideIndex] {
                                 // panned piece and target have complementary sides facing each other (snap them together)
                                 print("panned piece side: \(pannedPieceSideIndex), target side: \(targetSideIndex)")
-                                pannedPieceView.center = targetPieceView.center + CGPoint(x: PuzzleConst.innerSize * sin(bearingToPannedPiece.round90.rads),
-                                                                                          y: -PuzzleConst.innerSize * cos(bearingToPannedPiece.round90.rads))
+                                pannedPieceView.center = targetPieceView.center + CGPoint(x: globalData.innerSize * sin(bearingToPannedPiece.round90.rads),
+                                                                                          y: -globalData.innerSize * cos(bearingToPannedPiece.round90.rads))
                                 pieces[targetPieceIndex].sides[targetSideIndex].isConnected = true
                                 pieces[pannedPieceIndex].sides[pannedPieceSideIndex].isConnected = true
                             }
