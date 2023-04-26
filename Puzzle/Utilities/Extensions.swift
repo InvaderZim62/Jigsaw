@@ -74,7 +74,7 @@ extension CGPoint {
     }
 
     func limitedToView(_ view: UIView) -> CGPoint {
-        let limitedX = min(view.bounds.maxX, max(view.bounds.minX, x))  // use bounds, since pieceViews are subviews of the view passed in (safeView)
+        let limitedX = min(view.bounds.maxX, max(view.bounds.minX, x))  // use bounds, since pieceViews are subviews of the view passed in (safeArea)
         let limitedY = min(view.bounds.maxY, max(view.bounds.minY, y))  // use frame, if pieceViews are subviews of ViewController.view
         return CGPoint(x: limitedX, y: limitedY)
     }

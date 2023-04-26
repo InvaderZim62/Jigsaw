@@ -45,7 +45,7 @@
                     </view>
                     <connections>
                         <outlet property="autosizedBoardView" destination="DEd-1b-7BR" id="M5c-hd-2LA"/>
-                        <outlet property="safeView" destination="uB1-IQ-bcT" id="gAu-Or-14O"/>
+                        <outlet property="safeArea" destination="uB1-IQ-bcT" id="gAu-Or-14O"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

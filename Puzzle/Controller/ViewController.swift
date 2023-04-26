@@ -25,7 +25,7 @@ class ViewController: UIViewController {
     var pannedPieceMatchingSide: Int?
     var targetPieceMatchingSide: Int?
 
-    @IBOutlet weak var safeView: UIView!
+    @IBOutlet weak var safeArea: UIView!
     @IBOutlet weak var autosizedBoardView: UIView!
     
     // MARK: - Start of code
@@ -47,9 +47,9 @@ class ViewController: UIViewController {
         // size boardView to fit completed puzzle size
         boardView.bounds.size = CGSize(width: globalData.innerSize * CGFloat(tileCols),
                                        height: globalData.innerSize * CGFloat(tileRows))
-        boardView.center = safeView.center
+        boardView.center = safeArea.center
         boardView.backgroundColor = .lightGray
-        safeView.addSubview(boardView)
+        safeArea.addSubview(boardView)
 
         for row in 0..<tileRows {
             for col in 0..<tileCols {
@@ -64,8 +64,8 @@ class ViewController: UIViewController {
                 pieces.append(piece)
                 let pieceView = createPieceView(sides: sides, image: tiles[row][col])
                 // randomly place piece in safe area
-                pieceView.center = CGPoint(x: Double.random(in: globalData.innerSize/2..<safeView.bounds.width - globalData.innerSize/2),
-                                           y: Double.random(in: globalData.innerSize/2..<safeView.bounds.height - globalData.innerSize/2))
+                pieceView.center = CGPoint(x: Double.random(in: globalData.innerSize/2..<safeArea.bounds.width - globalData.innerSize/2),
+                                           y: Double.random(in: globalData.innerSize/2..<safeArea.bounds.height - globalData.innerSize/2))
                 // place in order with some space between pieces
 //                let spaceFactor = 1.0
 //                pieceView.center = boardView.frame.origin + CGPoint(x: globalData.innerSize * (0.5 + spaceFactor * CGFloat(col)),
@@ -104,7 +104,7 @@ class ViewController: UIViewController {
 //        pieceView.addGestureRecognizer(singleTap)
 //        singleTap.require(toFail: doubleTap)  // don't fire singleTap, unless doubleTap fails (this slows down singleTap response)
 
-        safeView.addSubview(pieceView)
+        safeArea.addSubview(pieceView)
 
         return pieceView
     }
@@ -115,28 +115,28 @@ class ViewController: UIViewController {
         let edgeIndices = pannedPiece.edgeIndices
         if edgeIndices.count > 0 {
             for edgeIndex in edgeIndices {
-                let pieceCenterInBoardCoords = safeView.convert(pannedPieceView.center, to: boardView)
+                let pieceCenterInBoardCoords = safeArea.convert(pannedPieceView.center, to: boardView)
                 
                 switch edgeIndex {
                 case 0: // top
                     let distanceToTop = abs(pieceCenterInBoardCoords.y - globalData.innerSize / 2)
                     if distanceToTop < snap && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
-                        pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: globalData.innerSize / 2), to: safeView)
+                        pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: globalData.innerSize / 2), to: safeArea)
                     }
                 case 1: // right
                     let distanceToRight = abs(boardView.bounds.maxX - pieceCenterInBoardCoords.x - globalData.innerSize / 2)
                     if distanceToRight < snap && pieceCenterInBoardCoords.y > 0 && pieceCenterInBoardCoords.y < boardView.bounds.maxY {
-                        pannedPieceView.center = boardView.convert(CGPoint(x: boardView.bounds.maxX - globalData.innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeView)
+                        pannedPieceView.center = boardView.convert(CGPoint(x: boardView.bounds.maxX - globalData.innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeArea)
                     }
                 case 2: // bottom
                     let distanceToBottom = abs(boardView.bounds.maxY - pieceCenterInBoardCoords.y - globalData.innerSize / 2)
                     if distanceToBottom < snap && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
-                        pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: boardView.bounds.maxY - globalData.innerSize / 2), to: safeView)
+                        pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: boardView.bounds.maxY - globalData.innerSize / 2), to: safeArea)
                     }
                 case 3: // left
                     let distanceToLeft = abs(pieceCenterInBoardCoords.x - globalData.innerSize / 2)
                     if distanceToLeft < snap && pieceCenterInBoardCoords.y > 0 && pieceCenterInBoardCoords.y < boardView.bounds.maxY {
-                        pannedPieceView.center = boardView.convert(CGPoint(x: globalData.innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeView)
+                        pannedPieceView.center = boardView.convert(CGPoint(x: globalData.innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeArea)
                     }
                 default:
                     break
@@ -180,14 +180,14 @@ class ViewController: UIViewController {
             switch recognizer.state {
             case .began:
                 pannedPieceInitialCenter = pannedPieceView.center
-                safeView.bringSubviewToFront(pannedPieceView)
+                safeArea.bringSubviewToFront(pannedPieceView)
                 fallthrough
             case .changed:
-                // move panned piece, limited to edges of safeView
-                let translation = recognizer.translation(in: safeView)
+                // move panned piece, limited to edges of safeArea
+                let translation = recognizer.translation(in: safeArea)
                 let edgeInset = globalData.innerSize / 2
                 pannedPieceView.center = (pannedPieceInitialCenter + translation)
-                    .limitedToView(safeView, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
+                    .limitedToView(safeArea, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
                 
                 snapToEdge(pannedPiece, pannedPieceView)
                 snapToPiece(pannedPiece, pannedPieceView, pannedPieceIndex)
@@ -203,7 +203,7 @@ class ViewController: UIViewController {
     // rotate piece +90 degrees for single-tap, -90 degrees for double-tap (animated)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
         if let tappedPieceView = recognizer.view as? PieceView {
-            safeView.bringSubviewToFront(tappedPieceView)
+            safeArea.bringSubviewToFront(tappedPieceView)
             UIView.animate(withDuration: 0.2, animations: {
                 tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
             })
