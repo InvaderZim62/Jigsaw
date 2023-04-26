@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CoreImage  // pws: needed?
 
 struct PuzzleConst {
     static let pieceSize: CGFloat = 150  // size of puzzle piece, including tabs
@@ -13,10 +14,9 @@ struct PuzzleConst {
     static let snapDistance = 0.1  // percent innerSize
 }
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
-    let image = UIImage(named: "tree")!  // eventually, this will come from the user's Photo library
-//    let image = UIImage(named: "game")!
+    var image = UIImage(named: "tree")!  // default image
     var boardView = UIView()
     let globalData = GlobalData.sharedInstance
     var pieces = [Piece]()
@@ -29,27 +29,66 @@ class ViewController: UIViewController {
     @IBOutlet weak var autosizedBoardView: UIView!
     
     // MARK: - Start of code
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        title = "Jigsaw Puzzle"
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Choose Photo", style: .plain, target: self, action: #selector(importPicture))
 
+        safeArea.addSubview(boardView)
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
-        // resize image to fit autosizedBoardView, without changing image aspect ratio
-        let fitSize = sizeToFit(image, in: autosizedBoardView)
-        autosizedBoardView.removeFromSuperview()  // no longer needed, replace with boardView
+        createPuzzle(from: image)  // must call after bounds set
+    }
+    
+    func createPuzzle(from image: UIImage) {
+        let tiles = createTiles(from: image)
 
-        let resizedImage = image.resizedTo(fitSize)
+        createPiecesAndViews(from: tiles)
 
-        let tiles = resizedImage.extractTiles(with: CGSize(width: globalData.outerSize, height: globalData.outerSize),
-                                              overlap: globalData.outerSize - globalData.innerSize)!
         let tileRows = tiles.count
         let tileCols = tiles[0].count
         
         // size boardView to fit completed puzzle size
         boardView.bounds.size = CGSize(width: globalData.innerSize * CGFloat(tileCols),
                                        height: globalData.innerSize * CGFloat(tileRows))
-        boardView.center = safeArea.center
+        boardView.center = CGPoint(x: safeArea.bounds.midX, y: safeArea.bounds.midY)
         boardView.backgroundColor = .lightGray
-        safeArea.addSubview(boardView)
+    }
+    
+    func createTiles(from image: UIImage) -> [[UIImage]] {
+        // resize image to fit autosizedBoardView, without changing image aspect ratio
+        let fitSize = sizeToFit(image, in: autosizedBoardView)
+//        autosizedBoardView.backgroundColor = .yellow
+//        safeArea.backgroundColor = .blue
+
+        let resizedImage = image.resizedTo(fitSize)
+
+        let tiles = resizedImage.extractTiles(with: CGSize(width: globalData.outerSize, height: globalData.outerSize),
+                                              overlap: globalData.outerSize - globalData.innerSize)!
+        return tiles
+    }
+    
+    func sizeToFit(_ image: UIImage, in container: UIView) -> CGSize {
+        let imageAspectRatio = image.size.width / image.size.height
+        let containerAspectRatio = container.bounds.size.width / container.bounds.size.height
+        if imageAspectRatio > containerAspectRatio {
+            return CGSize(width: container.bounds.size.width, height: container.bounds.size.width / imageAspectRatio)
+        } else {
+            return CGSize(width: container.bounds.size.height * imageAspectRatio, height: container.bounds.size.height)
+        }
+    }
+
+    func createPiecesAndViews(from tiles: [[UIImage]]) {
+        pieces.removeAll()
+        pieceViews.values.forEach { $0.removeFromSuperview() }
+        pieceViews.removeAll()
+        
+        let tileRows = tiles.count
+        let tileCols = tiles[0].count
 
         for row in 0..<tileRows {
             for col in 0..<tileCols {
@@ -66,22 +105,12 @@ class ViewController: UIViewController {
                 // randomly place piece in safe area
                 pieceView.center = CGPoint(x: Double.random(in: globalData.innerSize/2..<safeArea.bounds.width - globalData.innerSize/2),
                                            y: Double.random(in: globalData.innerSize/2..<safeArea.bounds.height - globalData.innerSize/2))
-                // place in order with some space between pieces
+//                place in order with some space between pieces
 //                let spaceFactor = 1.0
 //                pieceView.center = boardView.frame.origin + CGPoint(x: globalData.innerSize * (0.5 + spaceFactor * CGFloat(col)),
 //                                                                    y: globalData.innerSize * (0.5 + spaceFactor * CGFloat(row)))
                 pieceViews[piece] = pieceView
             }
-        }
-    }
-    
-    func sizeToFit(_ image: UIImage, in container: UIView) -> CGSize {
-        let imageAspectRatio = image.size.width / image.size.height
-        let containerAspectRatio = container.bounds.size.width / container.bounds.size.height
-        if imageAspectRatio > containerAspectRatio {
-            return CGSize(width: container.bounds.size.width, height: container.bounds.size.width / imageAspectRatio)
-        } else {
-            return CGSize(width: container.bounds.size.height * imageAspectRatio, height: container.bounds.size.height)
         }
     }
 
@@ -109,6 +138,14 @@ class ViewController: UIViewController {
         return pieceView
     }
     
+    // open picker controller to browse through photo library
+    @objc func importPicture() {
+        let picker = UIImagePickerController()
+        picker.allowsEditing = true  // pws: needed?
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+
     // snap panned edge piece to nearby side of boardView
     func snapToEdge(_ pannedPiece: Piece, _ pannedPieceView: PieceView) {
         let snap = PuzzleConst.snapDistance * globalData.innerSize
@@ -214,14 +251,14 @@ class ViewController: UIViewController {
     
     // MARK: - Utilities
     
-    func pieceFor(_ pieceView: PieceView) -> Piece {
-        pieceViews.someKey(forValue: pieceView)!  // copy of piece (don't manipulate)
-    }
-    
     func pieceIndexFor(_ pieceView: PieceView) -> (Piece, Int) {
         let piece = pieceFor(pieceView)
         let pieceIndex = pieces.index(matching: piece)!
         return (piece, pieceIndex)
+    }
+    
+    func pieceFor(_ pieceView: PieceView) -> Piece {
+        pieceViews.someKey(forValue: pieceView)!  // copy of piece (don't manipulate)
     }
 
     func sideIndexFor(bearing: Double) -> Int? {  // assumes bearing from 0 to 360 degrees
@@ -237,5 +274,15 @@ class ViewController: UIViewController {
         } else {
             return nil
         }
+    }
+    
+    // MARK: - UIImagePickerControllerDelegate
+    
+    // get image from picker when it closes (assign it to currentImage)
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        guard let pickerImage = info[.editedImage] as? UIImage else { return }
+        dismiss(animated: true)  // dismiss picker
+        
+        createPuzzle(from: pickerImage)
     }
 }
