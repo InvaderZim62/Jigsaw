@@ -20,6 +20,10 @@ struct Piece: IDable, Hashable {  // IDable for index(matching:) in extension Co
     var isConnected: Bool {
         sides.filter { $0.isConnected }.count > 0
     }
+    
+    var edgeIndices: [Int] {
+        sides.indices.filter { sides[$0].type == .edge }
+    }
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)

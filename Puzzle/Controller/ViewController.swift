@@ -119,13 +119,47 @@ class ViewController: UIViewController {
                 safeView.bringSubviewToFront(pannedPieceView)
                 fallthrough
             case .changed:
-                // move panned piece, limited to edges of screen
+                // move panned piece, limited to edges of safeView
                 let translation = recognizer.translation(in: safeView)
                 let edgeInset = globalData.innerSize / 2
                 pannedPieceView.center = (pannedPieceInitialCenter + translation)
                     .limitedToView(safeView, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
                 
-                let targetPieceViews = pieceViews.filter { $0.value != pannedPieceView }
+                // snap panned edge piece to nearby side of boardView
+                let edgeIndices = pannedPiece.edgeIndices
+                if edgeIndices.count > 0 {
+                    for edgeIndex in edgeIndices {
+                        let pieceCenterInBoardCoords = safeView.convert(pannedPieceView.center, to: boardView)
+                        
+                        switch edgeIndex {
+                        case 0: // top
+                            let distanceToTop = abs(pieceCenterInBoardCoords.y - globalData.innerSize / 2)
+                            if distanceToTop < 0.1 * globalData.innerSize && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
+                                pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: globalData.innerSize / 2), to: safeView)
+                            }
+                        case 1: // right
+                            let distanceToRight = abs(boardView.bounds.maxX - pieceCenterInBoardCoords.x - globalData.innerSize / 2)
+                            if distanceToRight < 0.1 * globalData.innerSize && pieceCenterInBoardCoords.y > 0 && pieceCenterInBoardCoords.y < boardView.bounds.maxY {
+                                pannedPieceView.center = boardView.convert(CGPoint(x: boardView.bounds.maxX - globalData.innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeView)
+                            }
+                        case 2: // bottom
+                            let distanceToBottom = abs(boardView.bounds.maxY - pieceCenterInBoardCoords.y - globalData.innerSize / 2)
+                            if distanceToBottom < 0.1 * globalData.innerSize && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
+                                pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: boardView.bounds.maxY - globalData.innerSize / 2), to: safeView)
+                            }
+                        case 3: // left
+                            let distanceToLeft = abs(pieceCenterInBoardCoords.x - globalData.innerSize / 2)
+                            if distanceToLeft < 0.1 * globalData.innerSize && pieceCenterInBoardCoords.y > 0 && pieceCenterInBoardCoords.y < boardView.bounds.maxY {
+                                pannedPieceView.center = boardView.convert(CGPoint(x: globalData.innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeView)
+                            }
+                        default:
+                            break
+                        }
+                    }
+                }
+                
+                // snap panned piece to nearby mating piece, if any (may not be the correct one)
+                let targetPieceViews = pieceViews.filter { $0.value != pannedPieceView }  // all pieces, excluding panned piece
                 for targetPieceView in targetPieceViews.values {
                     let (targetPiece, targetPieceIndex) = pieceIndexFor(targetPieceView)
                     let distanceToTarget = pannedPieceView.center.distance(from: targetPieceView.center)
@@ -137,7 +171,7 @@ class ViewController: UIViewController {
                         let bearingInPannedPieceFrame = (bearingToPannedPiece + 180 - pannedPieceView.rotation).wrap360
                         if let targetSideIndex = sideIndexFor(bearing: bearingInTargetFrame),
                            let pannedPieceSideIndex = sideIndexFor(bearing: bearingInPannedPieceFrame) {
-                            // panned piece is aligned horizontally or vertically to potential target
+                            // obtained indices of sides facing each other
                             if targetPiece.sides[targetSideIndex].mate == pannedPiece.sides[pannedPieceSideIndex] {
                                 // panned piece and target have complementary sides facing each other (snap them together)
                                 pannedPieceView.center = targetPieceView.center + CGPoint(x: globalData.innerSize * sin(bearingToPannedPiece.round90.rads),
@@ -149,8 +183,8 @@ class ViewController: UIViewController {
                     }
                 }
                 
-            case .ended:
-                print("pan ended")  // check if puzzle is complete?
+//            case .ended:
+//                print("pan ended")  // check if puzzle is complete?
             default:
                 break
             }
