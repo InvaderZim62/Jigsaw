@@ -107,9 +107,71 @@ class ViewController: UIViewController {
 
         return pieceView
     }
-
-    // MARK: - Gestures
     
+    // snap panned edge piece to nearby side of boardView
+    func snapToEdge(_ pannedPiece: Piece, _ pannedPieceView: PieceView) {
+        let edgeIndices = pannedPiece.edgeIndices
+        if edgeIndices.count > 0 {
+            for edgeIndex in edgeIndices {
+                let pieceCenterInBoardCoords = safeView.convert(pannedPieceView.center, to: boardView)
+                
+                switch edgeIndex {
+                case 0: // top
+                    let distanceToTop = abs(pieceCenterInBoardCoords.y - globalData.innerSize / 2)
+                    if distanceToTop < 0.1 * globalData.innerSize && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
+                        pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: globalData.innerSize / 2), to: safeView)
+                    }
+                case 1: // right
+                    let distanceToRight = abs(boardView.bounds.maxX - pieceCenterInBoardCoords.x - globalData.innerSize / 2)
+                    if distanceToRight < 0.1 * globalData.innerSize && pieceCenterInBoardCoords.y > 0 && pieceCenterInBoardCoords.y < boardView.bounds.maxY {
+                        pannedPieceView.center = boardView.convert(CGPoint(x: boardView.bounds.maxX - globalData.innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeView)
+                    }
+                case 2: // bottom
+                    let distanceToBottom = abs(boardView.bounds.maxY - pieceCenterInBoardCoords.y - globalData.innerSize / 2)
+                    if distanceToBottom < 0.1 * globalData.innerSize && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
+                        pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: boardView.bounds.maxY - globalData.innerSize / 2), to: safeView)
+                    }
+                case 3: // left
+                    let distanceToLeft = abs(pieceCenterInBoardCoords.x - globalData.innerSize / 2)
+                    if distanceToLeft < 0.1 * globalData.innerSize && pieceCenterInBoardCoords.y > 0 && pieceCenterInBoardCoords.y < boardView.bounds.maxY {
+                        pannedPieceView.center = boardView.convert(CGPoint(x: globalData.innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeView)
+                    }
+                default:
+                    break
+                }
+            }
+        }
+    }
+
+    // snap panned piece to nearby mating piece, if any (may not be the correct one)
+    func snapToPiece(_ pannedPiece: Piece, _ pannedPieceView: PieceView, _ pannedPieceIndex: Int) {
+        let targetPieceViews = pieceViews.filter { $0.value != pannedPieceView }  // all pieces, excluding panned piece
+        for targetPieceView in targetPieceViews.values {
+            let (targetPiece, targetPieceIndex) = pieceIndexFor(targetPieceView)
+            let distanceToTarget = pannedPieceView.center.distance(from: targetPieceView.center)
+            if distanceToTarget < 1.1 * globalData.innerSize &&
+                distanceToTarget > 0.9 * globalData.innerSize {  // may be more than one (will use first)
+                // panned piece is aligned horizontally or vertically to potential target within threshold
+                let bearingToPannedPiece = targetPieceView.center.bearing(to: pannedPieceView.center)
+                let bearingInTargetFrame = (bearingToPannedPiece - targetPieceView.rotation).wrap360
+                let bearingInPannedPieceFrame = (bearingToPannedPiece + 180 - pannedPieceView.rotation).wrap360
+                if let targetSideIndex = sideIndexFor(bearing: bearingInTargetFrame),
+                   let pannedPieceSideIndex = sideIndexFor(bearing: bearingInPannedPieceFrame) {
+                    // obtained indices of sides facing each other
+                    if targetPiece.sides[targetSideIndex].mate == pannedPiece.sides[pannedPieceSideIndex] {
+                        // panned piece and target have complementary sides facing each other (snap them together)
+                        pannedPieceView.center = targetPieceView.center + CGPoint(x: globalData.innerSize * sin(bearingToPannedPiece.round90.rads),
+                                                                                  y: -globalData.innerSize * cos(bearingToPannedPiece.round90.rads))
+                        pieces[targetPieceIndex].sides[targetSideIndex].isConnected = true
+                        pieces[pannedPieceIndex].sides[pannedPieceSideIndex].isConnected = true
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Gestures
+
     @objc private func handlePan(recognizer: UIPanGestureRecognizer) {
         if let pannedPieceView = recognizer.view as? PieceView {
             let (pannedPiece, pannedPieceIndex) = pieceIndexFor(pannedPieceView)  // copy of piece (don't manipulate)
@@ -125,63 +187,8 @@ class ViewController: UIViewController {
                 pannedPieceView.center = (pannedPieceInitialCenter + translation)
                     .limitedToView(safeView, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
                 
-                // snap panned edge piece to nearby side of boardView
-                let edgeIndices = pannedPiece.edgeIndices
-                if edgeIndices.count > 0 {
-                    for edgeIndex in edgeIndices {
-                        let pieceCenterInBoardCoords = safeView.convert(pannedPieceView.center, to: boardView)
-                        
-                        switch edgeIndex {
-                        case 0: // top
-                            let distanceToTop = abs(pieceCenterInBoardCoords.y - globalData.innerSize / 2)
-                            if distanceToTop < 0.1 * globalData.innerSize && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
-                                pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: globalData.innerSize / 2), to: safeView)
-                            }
-                        case 1: // right
-                            let distanceToRight = abs(boardView.bounds.maxX - pieceCenterInBoardCoords.x - globalData.innerSize / 2)
-                            if distanceToRight < 0.1 * globalData.innerSize && pieceCenterInBoardCoords.y > 0 && pieceCenterInBoardCoords.y < boardView.bounds.maxY {
-                                pannedPieceView.center = boardView.convert(CGPoint(x: boardView.bounds.maxX - globalData.innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeView)
-                            }
-                        case 2: // bottom
-                            let distanceToBottom = abs(boardView.bounds.maxY - pieceCenterInBoardCoords.y - globalData.innerSize / 2)
-                            if distanceToBottom < 0.1 * globalData.innerSize && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
-                                pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: boardView.bounds.maxY - globalData.innerSize / 2), to: safeView)
-                            }
-                        case 3: // left
-                            let distanceToLeft = abs(pieceCenterInBoardCoords.x - globalData.innerSize / 2)
-                            if distanceToLeft < 0.1 * globalData.innerSize && pieceCenterInBoardCoords.y > 0 && pieceCenterInBoardCoords.y < boardView.bounds.maxY {
-                                pannedPieceView.center = boardView.convert(CGPoint(x: globalData.innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeView)
-                            }
-                        default:
-                            break
-                        }
-                    }
-                }
-                
-                // snap panned piece to nearby mating piece, if any (may not be the correct one)
-                let targetPieceViews = pieceViews.filter { $0.value != pannedPieceView }  // all pieces, excluding panned piece
-                for targetPieceView in targetPieceViews.values {
-                    let (targetPiece, targetPieceIndex) = pieceIndexFor(targetPieceView)
-                    let distanceToTarget = pannedPieceView.center.distance(from: targetPieceView.center)
-                    if distanceToTarget < 1.1 * globalData.innerSize &&
-                        distanceToTarget > 0.9 * globalData.innerSize {  // may be more than one (will use first)
-                        // panned piece is aligned horizontally or vertically to potential target within threshold
-                        let bearingToPannedPiece = targetPieceView.center.bearing(to: pannedPieceView.center)
-                        let bearingInTargetFrame = (bearingToPannedPiece - targetPieceView.rotation).wrap360
-                        let bearingInPannedPieceFrame = (bearingToPannedPiece + 180 - pannedPieceView.rotation).wrap360
-                        if let targetSideIndex = sideIndexFor(bearing: bearingInTargetFrame),
-                           let pannedPieceSideIndex = sideIndexFor(bearing: bearingInPannedPieceFrame) {
-                            // obtained indices of sides facing each other
-                            if targetPiece.sides[targetSideIndex].mate == pannedPiece.sides[pannedPieceSideIndex] {
-                                // panned piece and target have complementary sides facing each other (snap them together)
-                                pannedPieceView.center = targetPieceView.center + CGPoint(x: globalData.innerSize * sin(bearingToPannedPiece.round90.rads),
-                                                                                          y: -globalData.innerSize * cos(bearingToPannedPiece.round90.rads))
-                                pieces[targetPieceIndex].sides[targetSideIndex].isConnected = true
-                                pieces[pannedPieceIndex].sides[pannedPieceSideIndex].isConnected = true
-                            }
-                        }
-                    }
-                }
+                snapToEdge(pannedPiece, pannedPieceView)
+                snapToPiece(pannedPiece, pannedPieceView, pannedPieceIndex)
                 
 //            case .ended:
 //                print("pan ended")  // check if puzzle is complete?
