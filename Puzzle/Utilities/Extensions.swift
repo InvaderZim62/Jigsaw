@@ -74,8 +74,8 @@ extension CGPoint {
     }
 
     func limitedToView(_ view: UIView) -> CGPoint {
-        let limitedX = min(view.bounds.maxX, max(view.bounds.minX, x))  // use bounds, since pawnViews are subviews of the view passed in (boardView)
-        let limitedY = min(view.bounds.maxY, max(view.bounds.minY, y))  // use frame, if pawnViews are subviews of SorryViewController.view
+        let limitedX = min(view.bounds.maxX, max(view.bounds.minX, x))  // use bounds, since pieceViews are subviews of the view passed in (safeView)
+        let limitedY = min(view.bounds.maxY, max(view.bounds.minY, y))  // use frame, if pieceViews are subviews of ViewController.view
         return CGPoint(x: limitedX, y: limitedY)
     }
     
@@ -107,7 +107,7 @@ extension UIImage {
     }
 
     // from: https://stackoverflow.com/questions/49853122
-    func shapeImageTo(_ path: UIBezierPath) -> UIImage {
+    func clipImageTo(_ path: UIBezierPath) -> UIImage {
         UIGraphicsBeginImageContext(size)
         let context = UIGraphicsGetCurrentContext()
         
@@ -127,8 +127,9 @@ extension UIImage {
         return maskedImage
     }
     
+    // break image into 2D array of tiles of given size
     // from: https://stackoverflow.com/questions/42076184
-    func extractTiles(with tileSize: CGSize, overlap: CGFloat) -> [[UIImage]]? {
+    func extractTiles(with tileSize: CGSize, overlap: CGFloat) -> [[UIImage]]? {  // tile[row][col]
         let cols = Int(size.width / (tileSize.width - overlap))
         let rows = Int(size.height / (tileSize.height - overlap))
 

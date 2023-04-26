@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="21701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
-    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <device id="ipad9_7" orientation="portrait" layout="fullscreen" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21678"/>
@@ -14,38 +14,48 @@
             <objects>
                 <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="Puzzle" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uB1-IQ-bcT">
-                                <rect key="frame" x="0.0" y="48" width="414" height="814"/>
-                                <color key="backgroundColor" systemColor="systemGray5Color"/>
+                                <rect key="frame" x="0.0" y="20" width="768" height="1004"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DEd-1b-7BR">
+                                        <rect key="frame" x="38.5" y="100.5" width="691" height="803"/>
+                                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                    </view>
+                                </subviews>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <constraints>
+                                    <constraint firstItem="DEd-1b-7BR" firstAttribute="centerY" secondItem="uB1-IQ-bcT" secondAttribute="centerY" id="ExM-OX-Tyn"/>
+                                    <constraint firstItem="DEd-1b-7BR" firstAttribute="width" secondItem="uB1-IQ-bcT" secondAttribute="width" multiplier="0.9" id="HHn-0T-88U"/>
+                                    <constraint firstItem="DEd-1b-7BR" firstAttribute="height" secondItem="uB1-IQ-bcT" secondAttribute="height" multiplier="0.8" id="PK4-zb-tZX"/>
+                                    <constraint firstItem="DEd-1b-7BR" firstAttribute="centerX" secondItem="uB1-IQ-bcT" secondAttribute="centerX" id="aDK-Gm-rq1"/>
+                                </constraints>
                             </view>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="uB1-IQ-bcT" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="Gq4-Zh-hza"/>
-                            <constraint firstItem="uB1-IQ-bcT" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="R8v-gg-gNY"/>
-                            <constraint firstItem="uB1-IQ-bcT" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="UpC-07-p5k"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="uB1-IQ-bcT" secondAttribute="trailing" id="R8v-gg-gNY"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="uB1-IQ-bcT" secondAttribute="bottom" id="UpC-07-p5k"/>
                             <constraint firstItem="uB1-IQ-bcT" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="nR7-gn-ah3"/>
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="boardView" destination="uB1-IQ-bcT" id="gAu-Or-14O"/>
+                        <outlet property="autosizedBoardView" destination="DEd-1b-7BR" id="M5c-hd-2LA"/>
+                        <outlet property="safeView" destination="uB1-IQ-bcT" id="gAu-Or-14O"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="139.13043478260872" y="3.3482142857142856"/>
+            <point key="canvasLocation" x="139.0625" y="2.9296875"/>
         </scene>
     </scenes>
     <resources>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-        </systemColor>
-        <systemColor name="systemGray5Color">
-            <color red="0.89803921568627454" green="0.89803921568627454" blue="0.91764705882352937" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

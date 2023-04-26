@@ -37,7 +37,7 @@ class PieceView: UIView {
         super.init(frame: CGRect.zero)  // compiler complains if this isn't here
         pictureView.frame = CGRect(x: 0, y: 0, width: globalData.outerSize, height: globalData.outerSize)
         pictureView.center = CGPoint(x: globalData.innerSize / 2, y: globalData.innerSize / 2)
-        pictureView.image = image.shapeImageTo(pathForSides(sides))
+        pictureView.image = image.clipImageTo(pathForSides(sides))
         addSubview(pictureView)
     }
     

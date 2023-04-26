@@ -8,7 +8,7 @@
 import UIKit
 
 struct PuzzleConst {
-    static let pieceSize: CGFloat = 120  // size of puzzle piece, including tabs
+    static let pieceSize: CGFloat = 150  // size of puzzle piece, including tabs
     static let innerRatio: CGFloat = 0.56
 }
 
@@ -16,6 +16,7 @@ class ViewController: UIViewController {
     
     let image = UIImage(named: "tree")!  // eventually, this will come from the user's Photo library
 //    let image = UIImage(named: "game")!
+    var boardView = UIView()
     let globalData = GlobalData.sharedInstance
     var pieces = [Piece]()
     var pieceViews = [Piece: PieceView]()
@@ -23,47 +24,54 @@ class ViewController: UIViewController {
     var pannedPieceMatchingSide: Int?
     var targetPieceMatchingSide: Int?
 
-    @IBOutlet weak var boardView: UIView!
+    @IBOutlet weak var safeView: UIView!
+    @IBOutlet weak var autosizedBoardView: UIView!
     
     // MARK: - Start of code
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        // resize image to fit boardView, without changing aspect ratio
-        let fitSize = sizeToFit(image, in: boardView)
+        // resize image to fit autosizedBoardView, without changing image aspect ratio
+        let fitSize = sizeToFit(image, in: autosizedBoardView)
+        autosizedBoardView.removeFromSuperview()  // no longer needed, replace with boardView
+
         let resizedImage = image.resizedTo(fitSize)
 
         let tiles = resizedImage.extractTiles(with: CGSize(width: globalData.outerSize, height: globalData.outerSize),
                                               overlap: globalData.outerSize - globalData.innerSize)!
-        for row in 0..<tiles.count {
-            for col in 0..<tiles[0].count {
-                let index = col + row * tiles[0].count
+        let tileRows = tiles.count
+        let tileCols = tiles[0].count
+        
+        // size boardView to fit completed puzzle size
+        boardView.bounds.size = CGSize(width: globalData.innerSize * CGFloat(tileCols),
+                                       height: globalData.innerSize * CGFloat(tileRows))
+        boardView.center = safeView.center
+        boardView.backgroundColor = .lightGray
+        safeView.addSubview(boardView)
+
+        for row in 0..<tileRows {
+            for col in 0..<tileCols {
+                let index = col + row * tileCols
                 let sides: [Side] = [
-                    row == 0 ? Side(type: .edge) : pieces[index - tiles[0].count].sides[2].mate,
-                    col == tiles[0].count - 1 ? Side(type: .edge) : Side.random(),
-                    row == tiles.count - 1 ? Side(type: .edge) : Side.random(),
+                    row == 0 ? Side(type: .edge) : pieces[index - tileCols].sides[2].mate,
+                    col == tileCols - 1 ? Side(type: .edge) : Side.random(),
+                    row == tileRows - 1 ? Side(type: .edge) : Side.random(),
                     col == 0 ? Side(type: .edge) : pieces[index - 1].sides[1].mate,
                 ]
                 let piece = Piece(sides: sides)
                 pieces.append(piece)
                 let pieceView = createPieceView(sides: sides, image: tiles[row][col])
-                pieceView.center = CGPoint(x: Double.random(in: globalData.innerSize/2..<boardView.bounds.width - globalData.innerSize/2),
-                                           y: Double.random(in: globalData.innerSize/2..<boardView.bounds.height - globalData.innerSize/2))
+                // randomly place piece in safe area
+                pieceView.center = CGPoint(x: Double.random(in: globalData.innerSize/2..<safeView.bounds.width - globalData.innerSize/2),
+                                           y: Double.random(in: globalData.innerSize/2..<safeView.bounds.height - globalData.innerSize/2))
                 // place in order with some space between pieces
-//                pieceView.center  = CGPoint(x: globalData.innerSize * (0.5 + 1.3 * CGFloat(col)),
-//                                            y: globalData.innerSize * (0.5 + 1.3 * CGFloat(row)) + 200)
+//                let spaceFactor = 1.0
+//                pieceView.center = boardView.frame.origin + CGPoint(x: globalData.innerSize * (0.5 + spaceFactor * CGFloat(col)),
+//                                                                    y: globalData.innerSize * (0.5 + spaceFactor * CGFloat(row)))
                 pieceViews[piece] = pieceView
             }
         }
-
-        // temporarily show whole image, to verify resize worked
-//        let wholeImageView = UIImageView(image: resizedImage)
-//        wholeImageView.frame = CGRect(origin: CGPoint.zero, size: resizedImage.size)
-//        wholeImageView.center = CGPoint(x: boardView.bounds.midX, y: boardView.bounds.midY)
-//        wholeImageView.sizeToFit()
-//        boardView.addSubview(wholeImageView)
-        
     }
     
     func sizeToFit(_ image: UIImage, in container: UIView) -> CGSize {
@@ -86,16 +94,16 @@ class ViewController: UIViewController {
         pieceView.isUserInteractionEnabled = true
         pieceView.addGestureRecognizer(pan)
 
-        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
-        doubleTap.numberOfTapsRequired = 2
-        pieceView.addGestureRecognizer(doubleTap)
+//        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+//        doubleTap.numberOfTapsRequired = 2
+//        pieceView.addGestureRecognizer(doubleTap)
+//
+//        let singleTap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+//        singleTap.numberOfTapsRequired = 1
+//        pieceView.addGestureRecognizer(singleTap)
+//        singleTap.require(toFail: doubleTap)  // don't fire singleTap, unless doubleTap fails (this slows down singleTap response)
 
-        let singleTap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
-        singleTap.numberOfTapsRequired = 1
-        pieceView.addGestureRecognizer(singleTap)
-        singleTap.require(toFail: doubleTap)  // don't fire singleTap, unless doubleTap fails (this slows down singleTap response)
-
-        boardView.addSubview(pieceView)
+        safeView.addSubview(pieceView)
 
         return pieceView
     }
@@ -108,14 +116,14 @@ class ViewController: UIViewController {
             switch recognizer.state {
             case .began:
                 pannedPieceInitialCenter = pannedPieceView.center
-                boardView.bringSubviewToFront(pannedPieceView)
+                safeView.bringSubviewToFront(pannedPieceView)
                 fallthrough
             case .changed:
                 // move panned piece, limited to edges of screen
-                let translation = recognizer.translation(in: boardView)
+                let translation = recognizer.translation(in: safeView)
                 let edgeInset = globalData.innerSize / 2
                 pannedPieceView.center = (pannedPieceInitialCenter + translation)
-                    .limitedToView(boardView, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
+                    .limitedToView(safeView, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
                 
                 let targetPieceViews = pieceViews.filter { $0.value != pannedPieceView }
                 for targetPieceView in targetPieceViews.values {
@@ -152,7 +160,7 @@ class ViewController: UIViewController {
     // rotate piece +90 degrees for single-tap, -90 degrees for double-tap (animated)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
         if let tappedPieceView = recognizer.view as? PieceView {
-            boardView.bringSubviewToFront(tappedPieceView)
+            safeView.bringSubviewToFront(tappedPieceView)
             UIView.animate(withDuration: 0.2, animations: {
                 tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
             })
