@@ -11,7 +11,7 @@ class GlobalData: NSObject {
     static let sharedInstance = GlobalData()
     private override init() { }
     
-    var outerSize: CGFloat = PuzzleConst.targetPieceSize
-    var innerSize: CGFloat = PuzzleConst.targetPieceSize * PuzzleConst.innerRatio
-    var inset: CGFloat = PuzzleConst.targetPieceSize * (1 - PuzzleConst.innerRatio) / 2
+    var outerSize: CGFloat = PuzzleConst.pieceSize
+    var innerSize: CGFloat = PuzzleConst.pieceSize * PuzzleConst.innerRatio
+    var inset: CGFloat = PuzzleConst.pieceSize * (1 - PuzzleConst.innerRatio) / 2
 }

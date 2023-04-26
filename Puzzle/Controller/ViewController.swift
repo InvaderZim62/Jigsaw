@@ -8,14 +8,14 @@
 import UIKit
 
 struct PuzzleConst {
-    static let targetPieceSize: CGFloat = 200  // size of puzzle piece, including tabs
+    static let pieceSize: CGFloat = 120  // size of puzzle piece, including tabs
     static let innerRatio: CGFloat = 0.56
 }
 
 class ViewController: UIViewController {
     
-//    let image = UIImage(named: "tree")!  // eventually, this will come from the user's Photo library
-    let image = UIImage(named: "game")!
+    let image = UIImage(named: "tree")!  // eventually, this will come from the user's Photo library
+//    let image = UIImage(named: "game")!
     let globalData = GlobalData.sharedInstance
     var pieces = [Piece]()
     var pieceViews = [Piece: PieceView]()
@@ -27,80 +27,42 @@ class ViewController: UIViewController {
     
     // MARK: - Start of code
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-                
-        let sides0: [Side] = [
-            Side(type: .edge),
-            Side.random(),
-            Side.random(),
-            Side(type: .edge),
-        ]
-        
-        let sides1: [Side] = [
-            Side(type: .edge),
-            Side.random(),
-            Side.random(),
-            sides0[1].mate,
-        ]
-        
-        let sides2: [Side] = [
-            sides0[2].mate,
-            Side.random(),
-            Side.random(),
-            Side(type: .edge),
-        ]
-        
-        let sides3: [Side] = [
-            sides1[2].mate,
-            Side.random(),
-            Side.random(),
-            sides2[1].mate,
-        ]
-        
-        pieces.append(Piece(sides: sides0))
-        pieces.append(Piece(sides: sides1))
-        pieces.append(Piece(sides: sides2))
-        pieces.append(Piece(sides: sides3))
-
-        let overlap = globalData.outerSize - globalData.innerSize
-        let tiles = image.extractTiles(with: CGSize(width: globalData.outerSize, height: globalData.outerSize), overlap: overlap)!
-
-        let row = Int(0.58 * Double(tiles.count))  // branching part of tree
-        let col = Int(0.54 * Double(tiles[0].count))
-        
-        pieceViews[pieces[0]] = createPieceView(sides: pieces[0].sides, image: tiles[row][col])
-        pieceViews[pieces[1]] = createPieceView(sides: pieces[1].sides, image: tiles[row][col+1])
-        pieceViews[pieces[2]] = createPieceView(sides: pieces[2].sides, image: tiles[row+1][col])
-        pieceViews[pieces[3]] = createPieceView(sides: pieces[3].sides, image: tiles[row+1][col+1])
-
-        let separation = 100.0
-
-        pieceViews[pieces[0]]!.center = CGPoint(x: 100, y: 200)
-        pieceViews[pieces[1]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: globalData.innerSize + separation, dy: 0)
-        pieceViews[pieces[2]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: 0, dy: globalData.innerSize + separation)
-        pieceViews[pieces[3]]!.center = pieceViews[pieces[0]]!.center.offsetBy(dx: globalData.innerSize + separation, dy: globalData.innerSize + separation)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        view.setNeedsLayout()
-        view.layoutIfNeeded()
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         
         // resize image to fit boardView, without changing aspect ratio
         let fitSize = sizeToFit(image, in: boardView)
-        
-        let tileCols = fitSize.width / PuzzleConst.targetPieceSize
-        let tileRows = fitSize.height / PuzzleConst.targetPieceSize
-
         let resizedImage = image.resizedTo(fitSize)
-        
-        let wholeImageView = UIImageView(image: resizedImage)
-        wholeImageView.frame = CGRect(origin: CGPoint.zero, size: resizedImage.size)
-        wholeImageView.center = CGPoint(x: boardView.bounds.midX, y: boardView.bounds.midY)
-        wholeImageView.sizeToFit()
-        boardView.addSubview(wholeImageView)
+
+        let tiles = resizedImage.extractTiles(with: CGSize(width: globalData.outerSize, height: globalData.outerSize),
+                                              overlap: globalData.outerSize - globalData.innerSize)!
+        for row in 0..<tiles.count {
+            for col in 0..<tiles[0].count {
+                let index = col + row * tiles[0].count
+                let sides: [Side] = [
+                    row == 0 ? Side(type: .edge) : pieces[index - tiles[0].count].sides[2].mate,
+                    col == tiles[0].count - 1 ? Side(type: .edge) : Side.random(),
+                    row == tiles.count - 1 ? Side(type: .edge) : Side.random(),
+                    col == 0 ? Side(type: .edge) : pieces[index - 1].sides[1].mate,
+                ]
+                let piece = Piece(sides: sides)
+                pieces.append(piece)
+                let pieceView = createPieceView(sides: sides, image: tiles[row][col])
+                pieceView.center = CGPoint(x: Double.random(in: globalData.innerSize/2..<boardView.bounds.width - globalData.innerSize/2),
+                                           y: Double.random(in: globalData.innerSize/2..<boardView.bounds.height - globalData.innerSize/2))
+                // place in order with some space between pieces
+//                pieceView.center  = CGPoint(x: globalData.innerSize * (0.5 + 1.3 * CGFloat(col)),
+//                                            y: globalData.innerSize * (0.5 + 1.3 * CGFloat(row)) + 200)
+                pieceViews[piece] = pieceView
+            }
+        }
+
+        // temporarily show whole image, to verify resize worked
+//        let wholeImageView = UIImageView(image: resizedImage)
+//        wholeImageView.frame = CGRect(origin: CGPoint.zero, size: resizedImage.size)
+//        wholeImageView.center = CGPoint(x: boardView.bounds.midX, y: boardView.bounds.midY)
+//        wholeImageView.sizeToFit()
+//        boardView.addSubview(wholeImageView)
         
     }
     
@@ -170,7 +132,6 @@ class ViewController: UIViewController {
                             // panned piece is aligned horizontally or vertically to potential target
                             if targetPiece.sides[targetSideIndex].mate == pannedPiece.sides[pannedPieceSideIndex] {
                                 // panned piece and target have complementary sides facing each other (snap them together)
-                                print("panned piece side: \(pannedPieceSideIndex), target side: \(targetSideIndex)")
                                 pannedPieceView.center = targetPieceView.center + CGPoint(x: globalData.innerSize * sin(bearingToPannedPiece.round90.rads),
                                                                                           y: -globalData.innerSize * cos(bearingToPannedPiece.round90.rads))
                                 pieces[targetPieceIndex].sides[targetSideIndex].isConnected = true
