@@ -12,7 +12,7 @@ protocol IDable {
     var id: UUID { get set }
 }
 
-struct Piece: IDable, Hashable {  // IDable for index(matching:) in extension Collection, Hashable to use as dictionary key
+struct Piece: IDable {  // IDable for index(matching:) in extension Collection
     var sides: [Side]
     var id = UUID()
     var rotation = 0.0  // degrees, zero is up, pos is clockwise
@@ -24,7 +24,9 @@ struct Piece: IDable, Hashable {  // IDable for index(matching:) in extension Co
     var edgeIndices: [Int] {
         sides.indices.filter { sides[$0].type == .edge }
     }
+}
 
+extension Piece: Hashable {  // Hashable to use as dictionary key
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
