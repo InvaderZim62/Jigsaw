@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import CoreImage  // pws: needed?
 
 struct PuzzleConst {
     static let pieceSize: CGFloat = 150  // size of puzzle piece, including tabs
@@ -105,7 +104,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 // randomly place piece in safe area
                 pieceView.center = CGPoint(x: Double.random(in: globalData.innerSize/2..<safeArea.bounds.width - globalData.innerSize/2),
                                            y: Double.random(in: globalData.innerSize/2..<safeArea.bounds.height - globalData.innerSize/2))
-//                place in order with some space between pieces
+//                // place in order with some space between pieces
 //                let spaceFactor = 1.0
 //                pieceView.center = boardView.frame.origin + CGPoint(x: globalData.innerSize * (0.5 + spaceFactor * CGFloat(col)),
 //                                                                    y: globalData.innerSize * (0.5 + spaceFactor * CGFloat(row)))
@@ -258,7 +257,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     func pieceFor(_ pieceView: PieceView) -> Piece {
-        pieceViews.someKey(forValue: pieceView)!  // copy of piece (don't manipulate)
+        pieceViews.getKey(forValue: pieceView)!  // copy of piece (don't manipulate)
     }
 
     func sideIndexFor(bearing: Double) -> Int? {  // assumes bearing from 0 to 360 degrees

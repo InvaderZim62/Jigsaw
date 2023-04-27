@@ -50,7 +50,7 @@ extension CGFloat {
 }
 
 extension Dictionary where Value: Equatable {
-    func someKey(forValue val: Value) -> Key? {  // usage: let key = dict.someKey(forValue: val)
+    func getKey(forValue val: Value) -> Key? {  // usage: let key = dict.getKey(forValue: val)
         first(where: { $1 == val })?.key
     }
 }
