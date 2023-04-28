@@ -12,7 +12,8 @@ protocol IDable {
     var id: UUID { get set }
 }
 
-struct Piece: IDable {  // IDable for index(matching:) in extension Collection
+struct Piece: IDable {
+    // IDable for index(matching:) in extension Collection
     var sides: [Side]
     var id = UUID()
     var rotation = 0.0  // degrees, zero is up, pos is clockwise
@@ -33,5 +34,15 @@ extension Piece: Hashable {  // Hashable to use as dictionary key
     
     static func == (lhs: Piece, rhs: Piece) -> Bool {
         lhs.id == rhs.id
+    }
+}
+
+extension Piece: CustomStringConvertible {
+    var description: String {
+        var descript = ""
+        for (index, side) in sides.enumerated() {
+            descript += "\(index): \(side)\n"
+        }
+        return descript
     }
 }

@@ -92,12 +92,35 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         for row in 0..<tileRows {
             for col in 0..<tileCols {
                 let index = col + row * tileCols
-                let sides: [Side] = [
-                    row == 0 ? Side(type: .edge) : pieces[index - tileCols].sides[2].mate,
-                    col == tileCols - 1 ? Side(type: .edge) : Side.random(),
-                    row == tileRows - 1 ? Side(type: .edge) : Side.random(),
-                    col == 0 ? Side(type: .edge) : pieces[index - 1].sides[1].mate,
+                // move from left to right, top to bottom; top side must mate to piece above (unless first row edge);
+                // left side must mate to previous piece (unless first col edge); remaining sides are random or edges
+                var sides: [Side] = [
+                    row == 0 ? Side(type: .edge) : pieces[index - tileCols].sides[2].mate,  // top side
+                    col == tileCols - 1 ? Side(type: .edge) : Side.random(),                // right side
+                    row == tileRows - 1 ? Side(type: .edge) : Side.random(),                // bottom side
+                    col == 0 ? Side(type: .edge) : pieces[index - 1].sides[1].mate,         // left side
                 ]
+                // move right-side hole to avoid overlapping top-side hole
+                if sides[1].type == .hole && sides[0].type == .hole {
+                    sides[1].tabPosition = max(sides[1].tabPosition, sides[0].tabPosition - 0.05)
+                }
+                // move bottom-side hole to avoid overlapping right-side hole
+                if sides[2].type == .hole && sides[1].type == .hole {
+                    sides[2].tabPosition = max(sides[2].tabPosition, sides[1].tabPosition - 0.05)
+                }
+                // move bottom-side hole to avoid overlapping left-side hole
+                if sides[2].type == .hole && sides[3].type == .hole {
+                    if sides[1].type == .hole && sides[1].tabPosition >= 0.5 && sides[3].tabPosition <= 0.5 {
+                        // bottom-side hole sandwiched between left- and right-side holes
+                        sides[2].tabPosition = 0.5
+                    } else {
+                        sides[2].tabPosition = min(sides[2].tabPosition, sides[3].tabPosition + 0.05)
+                    }
+                }
+                // move right-side tab, to avoid overlapping left- and top-side holes on piece to the right
+                if row > 0 && col < tileCols - 1 && sides[1].type == .tab && pieces[index - tileCols + 1].sides[2].type == .tab {
+                    sides[1].tabPosition = max(sides[1].tabPosition, pieces[index - tileCols + 1].sides[2].tabPosition - 0.05)
+                }
                 let piece = Piece(sides: sides)
                 pieces.append(piece)
                 let pieceView = createPieceView(sides: sides, image: tiles[row][col])
@@ -215,6 +238,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             let (pannedPiece, pannedPieceIndex) = pieceIndexFor(pannedPieceView)  // copy of piece (don't manipulate)
             switch recognizer.state {
             case .began:
+                print(pannedPiece)
                 pannedPieceInitialCenter = pannedPieceView.center
                 safeArea.bringSubviewToFront(pannedPieceView)
                 fallthrough
