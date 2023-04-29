@@ -15,7 +15,7 @@
 import UIKit
 
 struct PieceConst {
-    static let radiusFactor: CGFloat = 0.08
+    static let tabRadiusFactor: CGFloat = 0.08
     static let neckWidthFactor: CGFloat = 0.11
     static let controlPointLengthFactor: CGFloat = 0.05
     static let lineWidthFactor: CGFloat = 0.015
@@ -49,7 +49,7 @@ class PieceView: UIView {
 
     // lazy, since they use bounds (ok to use during init, since not using constraints)
     private lazy var frameCenter = CGPoint(x: pictureView.frame.width / 2.0, y: pictureView.frame.height / 2.0)
-    private lazy var radius = PieceConst.radiusFactor * pictureView.bounds.width
+    private lazy var tabRadius = PieceConst.tabRadiusFactor * pictureView.bounds.width
     private lazy var neckWidth = PieceConst.neckWidthFactor * pictureView.bounds.width
     private lazy var cpLength = PieceConst.controlPointLengthFactor * pictureView.bounds.width
     private lazy var lineWidth = PieceConst.lineWidthFactor * pictureView.bounds.width
@@ -86,17 +86,17 @@ class PieceView: UIView {
         } else {
             let sign: CGFloat = side.type == .tab ? 1 : -1
             let tabCenter = leftShoulder + CGPoint(x: side.tabPosition * (rightShoulder.x - leftShoulder.x),
-                                                   y: -sign * (leftShoulder.y - radius - lineWidth / 2))
+                                                   y: -sign * (leftShoulder.y - tabRadius - lineWidth / 2))
             
-            let leftNeck = tabCenter.offsetBy(dx: -neckWidth / 2, dy: sign * 1.1 * radius)
+            let leftNeck = tabCenter.offsetBy(dx: -neckWidth / 2, dy: sign * 1.1 * tabRadius)
             let leftNeckCP1 = leftShoulder.offsetBy(dx: cpLength, dy: 0)
             let leftNeckCP2 = leftNeck.offsetBy(dx: 0, dy: sign * cpLength)
             
-            let leftEar = tabCenter.offsetBy(dx: -radius, dy: 0)
+            let leftEar = tabCenter.offsetBy(dx: -tabRadius, dy: 0)
             let leftEarCP1 = leftNeck.offsetBy(dx: 0, dy: -sign * cpLength)
             let leftEarCP2 = leftEar.offsetBy(dx: 0, dy: sign * cpLength)
             
-            let rightEar = tabCenter.offsetBy(dx: radius, dy: 0)
+            let rightEar = tabCenter.offsetBy(dx: tabRadius, dy: 0)
             let rightNeck = leftNeck.offsetBy(dx: neckWidth, dy: 0)
             let rightNeckCP1 = rightEar.offsetBy(dx: 0, dy: sign * cpLength)
             let rightNeckCP2 = rightNeck.offsetBy(dx: 0, dy: -sign * cpLength)
@@ -106,7 +106,7 @@ class PieceView: UIView {
             
             path.addCurve(to: leftNeck, controlPoint1: leftNeckCP1, controlPoint2: leftNeckCP2)
             path.addCurve(to: leftEar, controlPoint1: leftEarCP1, controlPoint2: leftEarCP2)
-            path.addArc(withCenter: tabCenter, radius: radius, startAngle: CGFloat.pi, endAngle: 0, clockwise: side.type == .tab)
+            path.addArc(withCenter: tabCenter, radius: tabRadius, startAngle: CGFloat.pi, endAngle: 0, clockwise: side.type == .tab)
             path.addCurve(to: rightNeck, controlPoint1: rightNeckCP1, controlPoint2: rightNeckCP2)
             path.addCurve(to: rightShoulder, controlPoint1: endCP1, controlPoint2: endCP2)
         }
