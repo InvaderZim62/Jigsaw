@@ -128,9 +128,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 pieceView.center = CGPoint(x: Double.random(in: globalData.innerSize/2..<safeArea.bounds.width - globalData.innerSize/2),
                                            y: Double.random(in: globalData.innerSize/2..<safeArea.bounds.height - globalData.innerSize/2))
 //                // place in order with some space between pieces
-                let spaceFactor = 1.0
-                pieceView.center = boardView.frame.origin + CGPoint(x: globalData.innerSize * (0.5 + spaceFactor * CGFloat(col)),
-                                                                    y: globalData.innerSize * (0.5 + spaceFactor * CGFloat(row)))
+//                let spaceFactor = 1.0
+//                pieceView.center = boardView.frame.origin + CGPoint(x: globalData.innerSize * (0.5 + spaceFactor * CGFloat(col)),
+//                                                                    y: globalData.innerSize * (0.5 + spaceFactor * CGFloat(row)))
                 pieceViews[piece] = pieceView
             }
         }
