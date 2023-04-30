@@ -9,7 +9,7 @@ import UIKit
 
 struct PuzzleConst {
     static let pieceSize: CGFloat = 150  // size of puzzle piece, including tabs
-    static let innerRatio: CGFloat = 0.56
+    static let innerRatio: CGFloat = 0.60  // bigger ratio => bigger inner size (less distance tab cuts into neighboring piece)
     static let snapDistance = 0.1  // percent innerSize
 }
 

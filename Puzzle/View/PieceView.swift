@@ -88,7 +88,7 @@ class PieceView: UIView {
             let tabCenter = leftShoulder + CGPoint(x: side.tabPosition * (rightShoulder.x - leftShoulder.x),
                                                    y: -sign * (leftShoulder.y - tabRadius - lineWidth / 2))
             
-            let leftNeck = tabCenter.offsetBy(dx: -neckWidth / 2, dy: sign * 1.1 * tabRadius)
+            let leftNeck = tabCenter.offsetBy(dx: -neckWidth / 2, dy: sign * leftShoulder.y / 2)  // midway between bottom of tab circle and shoulder
             let leftNeckCP1 = leftShoulder.offsetBy(dx: cpLength, dy: 0)
             let leftNeckCP2 = leftNeck.offsetBy(dx: 0, dy: sign * cpLength)
             
