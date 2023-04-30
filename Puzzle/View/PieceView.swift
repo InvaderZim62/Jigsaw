@@ -15,9 +15,9 @@
 import UIKit
 
 struct PieceConst {
-    static let tabRadiusFactor: CGFloat = 0.08
+    static let tabRadiusFactor: CGFloat = 0.08  // use PuzzleConst.innerRatio to change how far tabs cut into neighboring pieces (not radius)
     static let neckWidthFactor: CGFloat = 0.11
-    static let controlPointLengthFactor: CGFloat = 0.05
+    static let controlPointLengthFactor: CGFloat = 0.05  // bigger cp => bigger radius splines
     static let lineWidthFactor: CGFloat = 0.015
 }
 
@@ -30,7 +30,7 @@ class PieceView: UIView {
         atan2(self.transform.b, self.transform.a).degs  // +/-180 degrees, zero is up, pos is clockwise
     }
 
-    private var pictureView = UIImageView()
+    private var pictureView = UIImageView()  // larger view to hold image
     
     init(sides: [Side], image: UIImage) {
         self.sides = sides
@@ -86,7 +86,7 @@ class PieceView: UIView {
         } else {
             let sign: CGFloat = side.type == .tab ? 1 : -1
             let tabCenter = leftShoulder + CGPoint(x: side.tabPosition * (rightShoulder.x - leftShoulder.x),
-                                                   y: -sign * (leftShoulder.y - tabRadius - lineWidth / 2))
+                                                   y: -sign * (leftShoulder.y - tabRadius - lineWidth / 2))  // ie. tabRadius from top, for tab
             
             let leftNeck = tabCenter.offsetBy(dx: -neckWidth / 2, dy: sign * leftShoulder.y / 2)  // midway between bottom of tab circle and shoulder
             let leftNeckCP1 = leftShoulder.offsetBy(dx: cpLength, dy: 0)
