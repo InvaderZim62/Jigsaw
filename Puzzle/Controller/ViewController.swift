@@ -46,19 +46,18 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     override func viewDidAppear(_ animated: Bool) {
         guard once == false else { return }
         super.viewDidAppear(animated)
-        createPuzzle(from: image)  // call after bounds set
+        createPuzzle(from: image)  // call after bounds set (don't put in viewDidLayoutSubviews, or it will re-create the puzzle when orientation changes)
         once = true
     }
     
     func createPuzzle(from image: UIImage) {
-        let tiles = createTiles(from: image)
-
+        let tiles = createTiles(from: image)  // 2D array of overlapping images
         let tileRows = tiles.count
         let tileCols = tiles[0].count
 
         pieceViews.values.forEach { $0.removeFromSuperview() }  // in case choosing a new photo
         
-        (pieces, pieceViews) = createPiecesAndViews(from: tiles)
+        (pieces, pieceViews) = createPiecesAndViews(from: tiles)  // turn images into puzzle pieces
         
         // size boardView to fit completed puzzle size
         boardView.bounds.size = CGSize(width: globalData.innerSize * CGFloat(tileCols),
@@ -67,14 +66,15 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         boardView.backgroundColor = .lightGray
 
         randomlyPlacePiecesInSafeArea()
-//        solvePuzzle(rows: tileRows, cols: tileCols)
+        solvePuzzle(rows: tileRows, cols: tileCols)
     }
     
+    // resize image and split into overlapping squares
     func createTiles(from image: UIImage) -> [[UIImage]] {
-        // resize image to fit autosizedBoardView, without changing image aspect ratio
+        // compute maximum size that fits in autosizedBoardView, while maintaining image aspect ratio
         let fitSize = sizeToFit(image, in: autosizedBoardView)
-//        autosizedBoardView.backgroundColor = .yellow
-//        safeArea.backgroundColor = .blue
+        safeArea.backgroundColor = .blue
+        autosizedBoardView.backgroundColor = .yellow
 
         let resizedImage = image.resizedTo(fitSize)
 
@@ -83,12 +83,15 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return tiles
     }
     
+    // compute size that maximizes space in container, while maintaining image aspect ration
     func sizeToFit(_ image: UIImage, in container: UIView) -> CGSize {
         let imageAspectRatio = image.size.width / image.size.height
         let containerAspectRatio = container.bounds.size.width / container.bounds.size.height
         if imageAspectRatio > containerAspectRatio {
+            // width-limited
             return CGSize(width: container.bounds.size.width, height: container.bounds.size.width / imageAspectRatio)
         } else {
+            // height-limited
             return CGSize(width: container.bounds.size.height * imageAspectRatio, height: container.bounds.size.height)
         }
     }
@@ -262,7 +265,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             let (pannedPiece, pannedPieceIndex) = pieceIndexFor(pannedPieceView)  // copy of piece (don't manipulate)
             switch recognizer.state {
             case .began:
-                print(pannedPiece)
                 pannedPieceInitialCenter = pannedPieceView.center
                 safeArea.bringSubviewToFront(pannedPieceView)
                 fallthrough
