@@ -38,24 +38,30 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         safeArea.addSubview(boardView)
     }
     
+    // Note: viewDidAppear gets called again when dismissing image picker on iPad running iOS 12.4
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        createPuzzle(from: image)  // must call after bounds set
+        createPuzzle(from: image)  // call after bounds set
     }
     
     func createPuzzle(from image: UIImage) {
         let tiles = createTiles(from: image)
 
-        createPiecesAndViews(from: tiles)
-
         let tileRows = tiles.count
         let tileCols = tiles[0].count
+
+        pieceViews.values.forEach { $0.removeFromSuperview() }
+        
+        (pieces, pieceViews) = createPiecesAndViews(from: tiles)
         
         // size boardView to fit completed puzzle size
         boardView.bounds.size = CGSize(width: globalData.innerSize * CGFloat(tileCols),
                                        height: globalData.innerSize * CGFloat(tileRows))
         boardView.center = CGPoint(x: safeArea.bounds.midX, y: safeArea.bounds.midY)
         boardView.backgroundColor = .lightGray
+
+        randomlyPlacePiecesInSafeArea()
+//        solvePuzzle(rows: tileRows, cols: tileCols)
     }
     
     func createTiles(from image: UIImage) -> [[UIImage]] {
@@ -81,10 +87,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
     }
 
-    func createPiecesAndViews(from tiles: [[UIImage]]) {
-        pieces.removeAll()
-        pieceViews.values.forEach { $0.removeFromSuperview() }
-        pieceViews.removeAll()
+    func createPiecesAndViews(from tiles: [[UIImage]]) -> ([Piece], [Piece: PieceView]) {
+        var pieces = [Piece]()
+        var pieceViews = [Piece: PieceView]()
         
         let tileRows = tiles.count
         let tileCols = tiles[0].count
@@ -124,16 +129,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 let piece = Piece(sides: sides)
                 pieces.append(piece)
                 let pieceView = createPieceView(sides: sides, image: tiles[row][col])
-                // randomly place piece in safe area
-                pieceView.center = CGPoint(x: Double.random(in: globalData.innerSize/2..<safeArea.bounds.width - globalData.innerSize/2),
-                                           y: Double.random(in: globalData.innerSize/2..<safeArea.bounds.height - globalData.innerSize/2))
-//                // place in order with some space between pieces
-//                let spaceFactor = 1.0
-//                pieceView.center = boardView.frame.origin + CGPoint(x: globalData.innerSize * (0.5 + spaceFactor * CGFloat(col)),
-//                                                                    y: globalData.innerSize * (0.5 + spaceFactor * CGFloat(row)))
                 pieceViews[piece] = pieceView
             }
         }
+        
+        return (pieces, pieceViews)
     }
 
     // create pieceView with pan, double-tap, and single-tap gestures; add to playView
@@ -160,10 +160,28 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return pieceView
     }
     
+    func randomlyPlacePiecesInSafeArea() {
+        pieceViews.values.forEach {
+            $0.center = CGPoint(x: Double.random(in: globalData.innerSize/2..<safeArea.bounds.width - globalData.innerSize/2),
+                                y: Double.random(in: globalData.innerSize/2..<safeArea.bounds.height - globalData.innerSize/2))
+        }
+    }
+    
+    func solvePuzzle(rows: Int, cols: Int) {
+        for row in 0..<rows {
+            for col in 0..<cols {
+                let index = col + row * cols
+                let piece = pieces[index]
+                pieceViews[piece]!.center = boardView.frame.origin + CGPoint(x: globalData.innerSize * (0.5 + CGFloat(col)),
+                                                                             y: globalData.innerSize * (0.5 + CGFloat(row)))
+            }
+        }
+    }
+    
     // open picker controller to browse through photo library
     @objc func importPicture() {
         let picker = UIImagePickerController()
-        picker.allowsEditing = true  // pws: needed?
+        picker.allowsEditing = true
         picker.delegate = self
         present(picker, animated: true)
     }
@@ -303,9 +321,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     // get image from picker when it closes (assign it to currentImage)
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        guard let pickerImage = info[.editedImage] as? UIImage else { return }
+        guard let pickerImage = info[.editedImage] as? UIImage else { return }  // .editedImage, in case user cropped image during selection
         dismiss(animated: true)  // dismiss picker
-        
+        image = pickerImage  // for iPad, since it calls viewDidAppear again
         createPuzzle(from: pickerImage)
     }
 }
