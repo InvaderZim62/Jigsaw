@@ -4,6 +4,9 @@
 //
 //  Created by Phil Stern on 4/21/23.
 //
+//  To do...
+//  - put white border around picture, so integer number of rows and columns don't truncate image
+//
 
 import UIKit
 
@@ -23,6 +26,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var pannedPieceInitialCenter = CGPoint.zero
     var pannedPieceMatchingSide: Int?
     var targetPieceMatchingSide: Int?
+    var once = false
 
     @IBOutlet weak var safeArea: UIView!
     @IBOutlet weak var autosizedBoardView: UIView!
@@ -40,8 +44,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     // Note: viewDidAppear gets called again when dismissing image picker on iPad running iOS 12.4
     override func viewDidAppear(_ animated: Bool) {
+        guard once == false else { return }
         super.viewDidAppear(animated)
         createPuzzle(from: image)  // call after bounds set
+        once = true
     }
     
     func createPuzzle(from image: UIImage) {
@@ -50,7 +56,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         let tileRows = tiles.count
         let tileCols = tiles[0].count
 
-        pieceViews.values.forEach { $0.removeFromSuperview() }
+        pieceViews.values.forEach { $0.removeFromSuperview() }  // in case choosing a new photo
         
         (pieces, pieceViews) = createPiecesAndViews(from: tiles)
         
