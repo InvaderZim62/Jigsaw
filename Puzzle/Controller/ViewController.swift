@@ -66,15 +66,15 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         boardView.backgroundColor = .lightGray
 
         randomlyPlacePiecesInSafeArea()
-        solvePuzzle(rows: tileRows, cols: tileCols)
+//        solvePuzzle(rows: tileRows, cols: tileCols)
     }
     
     // resize image and split into overlapping squares
     func createTiles(from image: UIImage) -> [[UIImage]] {
         // compute maximum size that fits in autosizedBoardView, while maintaining image aspect ratio
         let fitSize = sizeToFit(image, in: autosizedBoardView)
-        safeArea.backgroundColor = .blue
-        autosizedBoardView.backgroundColor = .yellow
+//        safeArea.backgroundColor = .blue
+//        autosizedBoardView.backgroundColor = .yellow
 
         let resizedImage = image.resizedTo(fitSize)
 
@@ -95,6 +95,24 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             return CGSize(width: container.bounds.size.height * imageAspectRatio, height: container.bounds.size.height)
         }
     }
+    
+    // compute size that maximizes space in container, while maintaining image aspect ration
+    // this version makes one side fit with whole number of pieces
+//    func sizeToFit(_ image: UIImage, in container: UIView) -> CGSize {
+//        let imageAspectRatio = image.size.width / image.size.height
+//        let containerAspectRatio = container.bounds.size.width / container.bounds.size.height
+//        if imageAspectRatio > containerAspectRatio {
+//            // width-limited (fit width to integer number of pieces - height may be cropped)
+//            let tileRows = Int(container.bounds.size.width / globalData.innerSize)
+//            let width = CGFloat(tileRows) * globalData.innerSize
+//            return CGSize(width: width, height: width / imageAspectRatio)
+//        } else {
+//            // height-limited (fit height to integer number of pieces - width may be cropped)
+//            let tileCols = Int(container.bounds.size.height / globalData.innerSize)
+//            let height = CGFloat(tileCols) * globalData.innerSize
+//            return CGSize(width: height * imageAspectRatio, height: height)
+//        }
+//    }
 
     func createPiecesAndViews(from tiles: [[UIImage]]) -> ([Piece], [Piece: PieceView]) {
         var pieces = [Piece]()
@@ -137,7 +155,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 }
                 let piece = Piece(sides: sides)
                 pieces.append(piece)
-                let pieceView = createPieceView(sides: sides, image: tiles[row][col])
+                let pieceView = createPieceView(sides: sides, image: tiles[row][col])  // create piceView with overlayed image
                 pieceViews[piece] = pieceView
             }
         }
@@ -271,7 +289,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             case .changed:
                 // move panned piece, limited to edges of safeArea
                 let translation = recognizer.translation(in: safeArea)
-                let edgeInset = globalData.innerSize / 2
+                let edgeInset = globalData.innerSize / 4
                 pannedPieceView.center = (pannedPieceInitialCenter + translation)
                     .limitedToView(safeArea, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
                 

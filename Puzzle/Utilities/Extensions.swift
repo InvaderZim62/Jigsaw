@@ -130,16 +130,18 @@ extension UIImage {
     // break image into 2D array of tiles of given size
     // from: https://stackoverflow.com/questions/42076184
     func extractTiles(with tileSize: CGSize, overlap: CGFloat) -> [[UIImage]]? {  // tile[row][col]
-        let cols = Int(size.width / (tileSize.width - overlap))
-        let rows = Int(size.height / (tileSize.height - overlap))
+        let cols = Int(size.width / (tileSize.width - overlap)) + 1
+        let rows = Int(size.height / (tileSize.height - overlap)) + 1
+        let widthRemainder = CGFloat(cols) * (tileSize.width - overlap) - size.width
+        let heightRemainder = CGFloat(rows) * (tileSize.height - overlap) - size.height
 
         var tiles = [[UIImage]]()
 
         for row in 0...rows - 1 {
             var tileRow = [UIImage]()
             for col in 0...cols - 1 {
-                let imagePoint = CGPoint(x: overlap / 2 - CGFloat(col) * (tileSize.width - overlap),
-                                         y: overlap / 2 - CGFloat(row) * (tileSize.height - overlap))
+                let imagePoint = CGPoint(x: widthRemainder / 2 + overlap / 2 - CGFloat(col) * (tileSize.width - overlap),
+                                         y: heightRemainder / 2 + overlap / 2 - CGFloat(row) * (tileSize.height - overlap))
                 UIGraphicsBeginImageContextWithOptions(tileSize, false, 0.0)
                 draw(at: imagePoint)
                 if let newImage = UIGraphicsGetImageFromCurrentImageContext() {
