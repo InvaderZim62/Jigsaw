@@ -4,9 +4,6 @@
 //
 //  Created by Phil Stern on 4/21/23.
 //
-//  To do...
-//  - put white border around picture, so integer number of rows and columns don't truncate image
-//
 
 import UIKit
 
@@ -79,21 +76,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         pieceViews.values.forEach { $0.removeFromSuperview() }  // in case choosing a new photo
         
         (pieces, pieceViews) = createPiecesAndViews(from: tiles)  // turn images into puzzle pieces
-        
-        // size boardView to fit completed puzzle size
-        boardView.removeFromSuperview()  // easiest way to remove all constraints, before reseting them
-        boardView = UIView()
-        safeArea.insertSubview(boardView, aboveSubview: autosizedBoardView)
-        boardView.translatesAutoresizingMaskIntoConstraints = false
-        boardView.widthAnchor.constraint(equalToConstant: globalData.innerSize * CGFloat(tileCols)).isActive = true
-        boardView.heightAnchor.constraint(equalToConstant: globalData.innerSize * CGFloat(tileRows)).isActive = true
-        boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor).isActive = true
-        boardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor).isActive = true
-        boardView.backgroundColor = .lightGray
-        safeArea.setNeedsLayout()
-        safeArea.layoutIfNeeded()
-        pastBoardViewOrigin = boardView.frame.origin
-
+        createBoardView(tileCols, tileRows)
         randomlyPlacePiecesInSafeArea()
 //        solvePuzzle(rows: tileRows, cols: tileCols)
     }
@@ -198,6 +181,22 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return pieceView
     }
     
+    // size boardView to fit completed puzzle size and add constraints to center in safeArea
+    func createBoardView(_ tileCols: Int, _ tileRows: Int) {
+        boardView.removeFromSuperview()  // easiest way to remove all constraints, before reseting them
+        boardView = UIView()
+        safeArea.insertSubview(boardView, aboveSubview: autosizedBoardView)
+        boardView.translatesAutoresizingMaskIntoConstraints = false
+        boardView.widthAnchor.constraint(equalToConstant: globalData.innerSize * CGFloat(tileCols)).isActive = true
+        boardView.heightAnchor.constraint(equalToConstant: globalData.innerSize * CGFloat(tileRows)).isActive = true
+        boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor).isActive = true
+        boardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor).isActive = true
+        boardView.backgroundColor = .lightGray
+        safeArea.setNeedsLayout()
+        safeArea.layoutIfNeeded()
+        pastBoardViewOrigin = boardView.frame.origin
+    }
+
     func randomlyPlacePiecesInSafeArea() {
         pieceViews.values.forEach {
             $0.center = CGPoint(x: Double.random(in: globalData.innerSize/2..<safeArea.bounds.width - globalData.innerSize/2),
