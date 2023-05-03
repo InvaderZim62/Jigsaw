@@ -37,11 +37,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         title = "Jigsaw Puzzle"
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Choose Photo", style: .plain, target: self, action: #selector(importPicture))
-
-        safeArea.addSubview(boardView)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Pick Photo", style: .plain, target: self, action: #selector(importPicture))
     }
     
     // Note: viewDidAppear gets called again when dismissing image picker on iPad running iOS 12.4
@@ -49,7 +46,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         guard once == false else { return }
         super.viewDidAppear(animated)
         createPuzzle(from: image)  // call after bounds set (don't put in viewDidLayoutSubviews, or it will re-create the puzzle when orientation changes)
-        pastBoardViewOrigin = boardView.frame.origin
         once = true
     }
     
@@ -61,8 +57,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             for piece in pieces {
                 let pieceView = pieceViews[piece]!
                 if piece.isConnected {
+                    // if connected, keep in same position on boardView (move with boardView origin)
                     pieceView.center = pieceView.center + boardView.frame.origin - pastBoardViewOrigin
                 } else {
+                    // if not connected, move to same relative position in safeArea
                     pieceView.center = CGPoint(x: pieceView.center.x * safeArea.bounds.width / pastSafeAreaBounds.width,
                                                y: pieceView.center.y * safeArea.bounds.height / pastSafeAreaBounds.height)
                     safeArea.bringSubviewToFront(pieceView)
@@ -83,14 +81,18 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         (pieces, pieceViews) = createPiecesAndViews(from: tiles)  // turn images into puzzle pieces
         
         // size boardView to fit completed puzzle size
+        boardView.removeFromSuperview()  // easiest way to remove all constraints, before reseting them
+        boardView = UIView()
+        safeArea.insertSubview(boardView, aboveSubview: autosizedBoardView)
         boardView.translatesAutoresizingMaskIntoConstraints = false
         boardView.widthAnchor.constraint(equalToConstant: globalData.innerSize * CGFloat(tileCols)).isActive = true
         boardView.heightAnchor.constraint(equalToConstant: globalData.innerSize * CGFloat(tileRows)).isActive = true
         boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor).isActive = true
         boardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor).isActive = true
+        boardView.backgroundColor = .lightGray
         safeArea.setNeedsLayout()
         safeArea.layoutIfNeeded()
-        boardView.backgroundColor = .lightGray
+        pastBoardViewOrigin = boardView.frame.origin
 
         randomlyPlacePiecesInSafeArea()
 //        solvePuzzle(rows: tileRows, cols: tileCols)
