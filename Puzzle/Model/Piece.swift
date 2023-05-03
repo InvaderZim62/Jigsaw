@@ -17,10 +17,7 @@ struct Piece: IDable {
     var sides: [Side]
     var id = UUID()
     var rotation = 0.0  // degrees, zero is up, pos is clockwise
-    
-    var isConnected: Bool {
-        sides.filter { $0.isConnected }.count > 0
-    }
+    var isConnected = false
     
     var edgeIndices: [Int] {
         sides.indices.filter { sides[$0].type == .edge }
@@ -39,10 +36,10 @@ extension Piece: Hashable {  // Hashable to use as dictionary key
 
 extension Piece: CustomStringConvertible {
     var description: String {
-        var descript = ""
+        var string = "isConnected: \(isConnected)\n"
         for (index, side) in sides.enumerated() {
-            descript += "\(index): \(side)\n"
+            string += "\(index): \(side)\n"
         }
-        return descript
+        return string
     }
 }

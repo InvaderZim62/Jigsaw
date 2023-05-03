@@ -26,6 +26,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var pannedPieceInitialCenter = CGPoint.zero
     var pannedPieceMatchingSide: Int?
     var targetPieceMatchingSide: Int?
+    var pastSafeAreaBounds = CGRect.zero
+    var pastBoardViewOrigin = CGPoint.zero
     var once = false
 
     @IBOutlet weak var safeArea: UIView!
@@ -47,7 +49,28 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         guard once == false else { return }
         super.viewDidAppear(animated)
         createPuzzle(from: image)  // call after bounds set (don't put in viewDidLayoutSubviews, or it will re-create the puzzle when orientation changes)
+        pastBoardViewOrigin = boardView.frame.origin
         once = true
+    }
+    
+    override func viewDidLayoutSubviews() {
+        if safeArea.bounds != pastSafeAreaBounds {
+            super.viewDidLayoutSubviews()
+            safeArea.setNeedsLayout()  // force boardView bounds to update now, since it normally occurs after viewDidLayoutSubviews
+            safeArea.layoutIfNeeded()
+            for piece in pieces {
+                let pieceView = pieceViews[piece]!
+                if piece.isConnected {
+                    pieceView.center = pieceView.center + boardView.frame.origin - pastBoardViewOrigin
+                } else {
+                    pieceView.center = CGPoint(x: pieceView.center.x * safeArea.bounds.width / pastSafeAreaBounds.width,
+                                               y: pieceView.center.y * safeArea.bounds.height / pastSafeAreaBounds.height)
+                    safeArea.bringSubviewToFront(pieceView)
+                }
+            }
+            pastSafeAreaBounds = safeArea.bounds
+            pastBoardViewOrigin = boardView.frame.origin
+        }
     }
     
     func createPuzzle(from image: UIImage) {
@@ -60,9 +83,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         (pieces, pieceViews) = createPiecesAndViews(from: tiles)  // turn images into puzzle pieces
         
         // size boardView to fit completed puzzle size
-        boardView.bounds.size = CGSize(width: globalData.innerSize * CGFloat(tileCols),
-                                       height: globalData.innerSize * CGFloat(tileRows))
-        boardView.center = CGPoint(x: safeArea.bounds.midX, y: safeArea.bounds.midY)
+        boardView.translatesAutoresizingMaskIntoConstraints = false
+        boardView.widthAnchor.constraint(equalToConstant: globalData.innerSize * CGFloat(tileCols)).isActive = true
+        boardView.heightAnchor.constraint(equalToConstant: globalData.innerSize * CGFloat(tileRows)).isActive = true
+        boardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor).isActive = true
+        boardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor).isActive = true
+        safeArea.setNeedsLayout()
+        safeArea.layoutIfNeeded()
         boardView.backgroundColor = .lightGray
 
         randomlyPlacePiecesInSafeArea()
@@ -96,24 +123,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
     }
     
-    // compute size that maximizes space in container, while maintaining image aspect ration
-    // this version makes one side fit with whole number of pieces
-//    func sizeToFit(_ image: UIImage, in container: UIView) -> CGSize {
-//        let imageAspectRatio = image.size.width / image.size.height
-//        let containerAspectRatio = container.bounds.size.width / container.bounds.size.height
-//        if imageAspectRatio > containerAspectRatio {
-//            // width-limited (fit width to integer number of pieces - height may be cropped)
-//            let tileRows = Int(container.bounds.size.width / globalData.innerSize)
-//            let width = CGFloat(tileRows) * globalData.innerSize
-//            return CGSize(width: width, height: width / imageAspectRatio)
-//        } else {
-//            // height-limited (fit height to integer number of pieces - width may be cropped)
-//            let tileCols = Int(container.bounds.size.height / globalData.innerSize)
-//            let height = CGFloat(tileCols) * globalData.innerSize
-//            return CGSize(width: height * imageAspectRatio, height: height)
-//        }
-//    }
-
     func createPiecesAndViews(from tiles: [[UIImage]]) -> ([Piece], [Piece: PieceView]) {
         var pieces = [Piece]()
         var pieceViews = [Piece: PieceView]()
@@ -201,6 +210,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 let piece = pieces[index]
                 pieceViews[piece]!.center = boardView.frame.origin + CGPoint(x: globalData.innerSize * (0.5 + CGFloat(col)),
                                                                              y: globalData.innerSize * (0.5 + CGFloat(row)))
+                pieces[index].isConnected = true
             }
         }
     }
@@ -214,7 +224,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
 
     // snap panned edge piece to nearby side of boardView
-    func snapToEdge(_ pannedPiece: Piece, _ pannedPieceView: PieceView) {
+    func snapToEdge(_ pannedPiece: Piece, _ pannedPieceView: PieceView, _ pannedPieceIndex: Int) -> Bool {
+        var isConnected = false
         let snap = PuzzleConst.snapDistance * globalData.innerSize
         let edgeIndices = pannedPiece.edgeIndices
         if edgeIndices.count > 0 {
@@ -226,31 +237,37 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     let distanceToTop = abs(pieceCenterInBoardCoords.y - globalData.innerSize / 2)
                     if distanceToTop < snap && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
                         pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: globalData.innerSize / 2), to: safeArea)
+                        isConnected = true
                     }
                 case 1: // right
                     let distanceToRight = abs(boardView.bounds.maxX - pieceCenterInBoardCoords.x - globalData.innerSize / 2)
                     if distanceToRight < snap && pieceCenterInBoardCoords.y > 0 && pieceCenterInBoardCoords.y < boardView.bounds.maxY {
                         pannedPieceView.center = boardView.convert(CGPoint(x: boardView.bounds.maxX - globalData.innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeArea)
+                        isConnected = true
                     }
                 case 2: // bottom
                     let distanceToBottom = abs(boardView.bounds.maxY - pieceCenterInBoardCoords.y - globalData.innerSize / 2)
                     if distanceToBottom < snap && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
                         pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: boardView.bounds.maxY - globalData.innerSize / 2), to: safeArea)
+                        isConnected = true
                     }
                 case 3: // left
                     let distanceToLeft = abs(pieceCenterInBoardCoords.x - globalData.innerSize / 2)
                     if distanceToLeft < snap && pieceCenterInBoardCoords.y > 0 && pieceCenterInBoardCoords.y < boardView.bounds.maxY {
                         pannedPieceView.center = boardView.convert(CGPoint(x: globalData.innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeArea)
+                        isConnected = true
                     }
                 default:
                     break
                 }
             }
         }
+        return isConnected
     }
 
     // snap panned piece to nearby mating piece, if any (may not be the correct one)
-    func snapToPiece(_ pannedPiece: Piece, _ pannedPieceView: PieceView, _ pannedPieceIndex: Int) {
+    func snapToPiece(_ pannedPiece: Piece, _ pannedPieceView: PieceView) -> Bool {
+        var isConnected = false
         let snap = PuzzleConst.snapDistance * globalData.innerSize
         let targetPieceViews = pieceViews.filter { $0.value != pannedPieceView }  // all pieces, excluding panned piece
         for targetPieceView in targetPieceViews.values {
@@ -268,12 +285,14 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                         // panned piece and target have complementary sides facing each other (snap them together)
                         pannedPieceView.center = targetPieceView.center + CGPoint(x: globalData.innerSize * sin(bearingToPannedPiece.round90.rads),
                                                                                   y: -globalData.innerSize * cos(bearingToPannedPiece.round90.rads))
-                        pieces[targetPieceIndex].sides[targetSideIndex].isConnected = true
-                        pieces[pannedPieceIndex].sides[pannedPieceSideIndex].isConnected = true
+                        if pieces[targetPieceIndex].isConnected {
+                            isConnected = true
+                        }
                     }
                 }
             }
         }
+        return isConnected
     }
     
     // MARK: - Gestures
@@ -293,11 +312,12 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 pannedPieceView.center = (pannedPieceInitialCenter + translation)
                     .limitedToView(safeArea, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
                 
-                snapToEdge(pannedPiece, pannedPieceView)
-                snapToPiece(pannedPiece, pannedPieceView, pannedPieceIndex)
+                // can't do: isConnected = snapToEdge || snapToPiece, since "or" stops checking if first is true
+                pieces[pannedPieceIndex].isConnected = snapToEdge(pannedPiece, pannedPieceView, pannedPieceIndex)
+                pieces[pannedPieceIndex].isConnected = snapToPiece(pannedPiece, pannedPieceView) || pieces[pannedPieceIndex].isConnected
                 
 //            case .ended:
-//                print("pan ended")  // check if puzzle is complete?
+//                print("pan ended\n\(pieces[pannedPieceIndex])")
             default:
                 break
             }

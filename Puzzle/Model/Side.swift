@@ -10,7 +10,6 @@ import Foundation
 struct Side {
     let type: Type
     var tabPosition: CGFloat  // percentage from edge for tab or hole
-    var isConnected = false
     
     init(type: Type, tabPosition: CGFloat = 0.5) {
         self.type = type

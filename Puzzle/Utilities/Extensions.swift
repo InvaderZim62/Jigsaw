@@ -60,6 +60,10 @@ extension CGPoint {
         CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
     }
     
+    static func -(lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+        CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
+    }
+    
     func distance(from point: CGPoint) -> Double {
         sqrt(pow((self.x - point.x), 2) + pow((self.y - point.y), 2))
     }
