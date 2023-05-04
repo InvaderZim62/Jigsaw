@@ -15,6 +15,7 @@ struct PuzzleConst {
 
 class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
+    var pieceSizeSML = PieceSizeSML.medium
     var image = UIImage(named: "tree")!  // default image
     var boardView = UIView()
     let globalData = GlobalData.sharedInstance
@@ -35,7 +36,15 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Jigsaw Puzzle"
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Pick Photo", style: .plain, target: self, action: #selector(importPicture))
+        if #available(iOS 14.0, *) {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "photo"), style: .plain, target: self, action: #selector(importPicture))
+            navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(showSettings))
+        } else {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Pick Photo", style: .plain, target: self, action: #selector(importPicture))
+            navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(showSettings))
+        }
+//        safeArea.backgroundColor = .blue
+//        autosizedBoardView.backgroundColor = .yellow
     }
     
     // Note: viewDidAppear gets called again when dismissing image picker on iPad running iOS 12.4
@@ -215,14 +224,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             }
         }
     }
-    
-    // open picker controller to browse through photo library
-    @objc func importPicture() {
-        let picker = UIImagePickerController()
-        picker.allowsEditing = true
-        picker.delegate = self
-        present(picker, animated: true)
-    }
 
     // snap panned edge piece to nearby side of boardView
     func snapToEdge(_ pannedPiece: Piece, _ pannedPieceView: PieceView, _ pannedPieceIndex: Int) -> Bool {
@@ -313,7 +314,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 pannedPieceView.center = (pannedPieceInitialCenter + translation)
                     .limitedToView(safeArea, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
                 
-                // can't do: isConnected = snapToEdge || snapToPiece, since "or" stops checking if first is true
+                // can't combine next two lines into: isConnected = snapToEdge || snapToPiece, since "or" stops checking if first is true
                 pieces[pannedPieceIndex].isConnected = snapToEdge(pannedPiece, pannedPieceView, pannedPieceIndex)
                 pieces[pannedPieceIndex].isConnected = snapToPiece(pannedPiece, pannedPieceView) || pieces[pannedPieceIndex].isConnected
                 
@@ -335,6 +336,28 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             // update model
             pieces[pieceIndexFor(tappedPieceView).1].rotation = tappedPieceView.rotation
         }
+    }
+    
+    // MARK: - Button Bar Actions
+    
+    @objc func showSettings() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let svc = storyboard.instantiateViewController(withIdentifier: "Settings") as? SettingsViewController {
+            svc.pieceSizeSML = pieceSizeSML
+            svc.updateSettings = { [weak self] in
+                self?.pieceSizeSML = svc.pieceSizeSML
+                print(self!.pieceSizeSML)
+            }
+            navigationController?.pushViewController(svc, animated: true)
+        }
+    }
+    
+    // open picker controller to browse through photo library
+    @objc func importPicture() {
+        let picker = UIImagePickerController()
+        picker.allowsEditing = true
+        picker.delegate = self
+        present(picker, animated: true)
     }
     
     // MARK: - Utilities
@@ -366,9 +389,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     // MARK: - UIImagePickerControllerDelegate
     
-    // get image from picker when it closes (assign it to currentImage)
+    // get image from picker when it closes (use it to create new puzzle)
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        guard let pickerImage = info[.editedImage] as? UIImage else { return }  // .editedImage, in case user cropped image during selection
+        // .editedImage allows user to zoom or crop image while selecting, but image picker forces cropping in some orientations
+        // .originalImage is the only way to get whole image in all orientations
+        guard let pickerImage = info[.originalImage] as? UIImage else { return }
         dismiss(animated: true)  // dismiss picker
         image = pickerImage  // for iPad, since it calls viewDidAppear again
         createPuzzle(from: pickerImage)

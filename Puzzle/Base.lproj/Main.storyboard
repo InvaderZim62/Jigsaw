@@ -53,6 +53,52 @@
             </objects>
             <point key="canvasLocation" x="904.6875" y="2.9296875"/>
         </scene>
+        <!--Settings View Controller-->
+        <scene sceneID="uNj-Y5-4oB">
+            <objects>
+                <viewController storyboardIdentifier="Settings" id="gCO-oJ-sNv" customClass="SettingsViewController" customModule="Puzzle" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="lFN-RV-RLz">
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" spacing="26" translatesAutoresizingMaskIntoConstraints="NO" id="JmO-gE-5MS">
+                                <rect key="frame" x="219" y="140" width="330" height="31"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Piece Size:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wGp-sf-jbM">
+                                        <rect key="frame" x="0.0" y="0.0" width="98" height="31"/>
+                                        <fontDescription key="fontDescription" name="ChalkboardSE-Regular" family="Chalkboard SE" pointSize="20"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="uFt-wh-R3m">
+                                        <rect key="frame" x="124" y="0.0" width="206" height="32"/>
+                                        <segments>
+                                            <segment title="Small"/>
+                                            <segment title="Medium"/>
+                                            <segment title="Large"/>
+                                        </segments>
+                                        <connections>
+                                            <action selector="segmentChanged:" destination="gCO-oJ-sNv" eventType="valueChanged" id="xlq-SA-azp"/>
+                                        </connections>
+                                    </segmentedControl>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="Yo2-hH-5jr"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="JmO-gE-5MS" firstAttribute="centerX" secondItem="lFN-RV-RLz" secondAttribute="centerX" id="NR6-FC-DsF"/>
+                            <constraint firstItem="JmO-gE-5MS" firstAttribute="top" secondItem="Yo2-hH-5jr" secondAttribute="top" constant="120" id="SRB-1w-R3T"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="pieceSizeSegmentedControl" destination="uFt-wh-R3m" id="YTT-rj-dVb"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="sC5-4I-KXj" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1654.6875" y="2.9296875"/>
+        </scene>
         <!--Navigation Controller-->
         <scene sceneID="VK0-5z-Og2">
             <objects>

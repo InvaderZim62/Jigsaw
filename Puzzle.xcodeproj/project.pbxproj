@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4A5237782A03419C00133989 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5237772A03419C00133989 /* SettingsViewController.swift */; };
+		4A52377A2A036BA900133989 /* Puzzle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5237792A036BA900133989 /* Puzzle.swift */; };
 		4AC8C49B29F3529C00A0E432 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC8C49A29F3529C00A0E432 /* AppDelegate.swift */; };
 		4AC8C49D29F3529C00A0E432 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC8C49C29F3529C00A0E432 /* SceneDelegate.swift */; };
 		4AC8C49F29F3529C00A0E432 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC8C49E29F3529C00A0E432 /* ViewController.swift */; };
@@ -21,6 +23,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4A5237772A03419C00133989 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		4A5237792A036BA900133989 /* Puzzle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Puzzle.swift; sourceTree = "<group>"; };
 		4AC8C49729F3529B00A0E432 /* Puzzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Puzzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4AC8C49A29F3529C00A0E432 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4AC8C49C29F3529C00A0E432 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -91,6 +95,7 @@
 		4AC8C4B929F39E7100A0E432 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				4A5237792A036BA900133989 /* Puzzle.swift */,
 				4AC8C4AF29F3536200A0E432 /* Piece.swift */,
 				4AC8C4B729F3637F00A0E432 /* Side.swift */,
 			);
@@ -109,6 +114,7 @@
 			isa = PBXGroup;
 			children = (
 				4AC8C49E29F3529C00A0E432 /* ViewController.swift */,
+				4A5237772A03419C00133989 /* SettingsViewController.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -198,9 +204,11 @@
 				4AC8C4B029F3536200A0E432 /* Piece.swift in Sources */,
 				4AC8C49F29F3529C00A0E432 /* ViewController.swift in Sources */,
 				4AC8C4C029F78E1D00A0E432 /* GlobalData.swift in Sources */,
+				4A52377A2A036BA900133989 /* Puzzle.swift in Sources */,
 				4AC8C4B829F3637F00A0E432 /* Side.swift in Sources */,
 				4AC8C49B29F3529C00A0E432 /* AppDelegate.swift in Sources */,
 				4AC8C49D29F3529C00A0E432 /* SceneDelegate.swift in Sources */,
+				4A5237782A03419C00133989 /* SettingsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
