@@ -44,8 +44,8 @@ struct Puzzle {
     }
     
     // create randomly fitting pieces in an array of end-to-end rows
-    mutating func createPieces() {
-        pieces.removeAll()
+    static func createPieces(rows: Int, cols: Int) -> [Piece] {
+        var pieces = [Piece]()
         
         for row in 0..<rows {
             for col in 0..<cols {
@@ -83,5 +83,11 @@ struct Puzzle {
                 pieces.append(piece)
             }
         }
+        
+        return pieces
     }
+        
+    static let example = Puzzle(rows: 3,
+                                cols: 3,
+                                pieces: createPieces(rows: 3, cols: 3))
 }

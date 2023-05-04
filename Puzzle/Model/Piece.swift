@@ -12,12 +12,11 @@ protocol IDable {
     var id: UUID { get set }
 }
 
-struct Piece: IDable {
-    // IDable for index(matching:) in extension Collection
+struct Piece: IDable {  // IDable for index(matching:) in extension Collection
     var sides: [Side]
     var id = UUID()
     var rotation = 0.0  // degrees, zero is up, pos is clockwise
-    var isConnected = false
+    var isConnected = false  // true if connected to edge, directly or through a series of pieces
     
     var edgeIndices: [Int] {
         sides.indices.filter { sides[$0].type == .edge }

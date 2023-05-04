@@ -80,10 +80,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     func createPuzzle(from image: UIImage) {
         let tiles = puzzle.createTiles(from: image, fitting: autosizedBoardView)  // 2D array of overlapping images
 
-        puzzle.createPieces()  // create random fitting piece shapes
+        puzzle.pieces = Puzzle.createPieces(rows: puzzle.rows, cols: puzzle.cols)  // create random fitting piece shapes
 
         pieceViews.values.forEach { $0.removeFromSuperview() }  // in case choosing a new photo
-        pieceViews = createPieceViews(from: puzzle.pieces, and: tiles)
+        pieceViews = createPieceViews(from: puzzle.pieces, and: tiles)  // create puzzle piece shapes overlaid with images
         
         createBoardView(puzzle.cols, puzzle.rows)
         
