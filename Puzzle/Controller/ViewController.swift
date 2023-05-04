@@ -18,8 +18,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var pieceSizeSML = PieceSizeSML.medium
     var image = UIImage(named: "tree")!  // default image
     var boardView = UIView()
+    var puzzle = Puzzle()
     let globalData = GlobalData.sharedInstance
-    var pieces = [Piece]()
     var pieceViews = [Piece: PieceView]()
     var pannedPieceInitialCenter = CGPoint.zero
     var pannedPieceMatchingSide: Int?
@@ -60,7 +60,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             super.viewDidLayoutSubviews()
             safeArea.setNeedsLayout()  // force boardView bounds to update now, since it normally occurs after viewDidLayoutSubviews
             safeArea.layoutIfNeeded()
-            for piece in pieces {
+            for piece in puzzle.pieces {
                 let pieceView = pieceViews[piece]!
                 if piece.isConnected {
                     // if connected, keep in same position on boardView (move with boardView origin)
@@ -78,47 +78,20 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     func createPuzzle(from image: UIImage) {
-        let tiles = createTiles(from: image)  // 2D array of overlapping images
-        let tileRows = tiles.count
-        let tileCols = tiles[0].count
+        let tiles = puzzle.createTiles(from: image, fitting: autosizedBoardView)  // 2D array of overlapping images
+
+        puzzle.createPieces()  // create random fitting piece shapes
 
         pieceViews.values.forEach { $0.removeFromSuperview() }  // in case choosing a new photo
+        pieceViews = createPieceViews(from: puzzle.pieces, and: tiles)
         
-        (pieces, pieceViews) = createPiecesAndViews(from: tiles)  // turn images into puzzle pieces
-        createBoardView(tileCols, tileRows)
+        createBoardView(puzzle.cols, puzzle.rows)
+        
         randomlyPlacePiecesInSafeArea()
-//        solvePuzzle(rows: tileRows, cols: tileCols)
+//        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
     }
     
-    // resize image and split into overlapping squares
-    func createTiles(from image: UIImage) -> [[UIImage]] {
-        // compute maximum size that fits in autosizedBoardView, while maintaining image aspect ratio
-        let fitSize = sizeToFit(image, in: autosizedBoardView)
-//        safeArea.backgroundColor = .blue
-//        autosizedBoardView.backgroundColor = .yellow
-
-        let resizedImage = image.resizedTo(fitSize)
-
-        let tiles = resizedImage.extractTiles(with: CGSize(width: globalData.outerSize, height: globalData.outerSize),
-                                              overlap: globalData.outerSize - globalData.innerSize)!
-        return tiles
-    }
-    
-    // compute size that maximizes space in container, while maintaining image aspect ration
-    func sizeToFit(_ image: UIImage, in container: UIView) -> CGSize {
-        let imageAspectRatio = image.size.width / image.size.height
-        let containerAspectRatio = container.bounds.size.width / container.bounds.size.height
-        if imageAspectRatio > containerAspectRatio {
-            // width-limited
-            return CGSize(width: container.bounds.size.width, height: container.bounds.size.width / imageAspectRatio)
-        } else {
-            // height-limited
-            return CGSize(width: container.bounds.size.height * imageAspectRatio, height: container.bounds.size.height)
-        }
-    }
-    
-    func createPiecesAndViews(from tiles: [[UIImage]]) -> ([Piece], [Piece: PieceView]) {
-        var pieces = [Piece]()
+    func createPieceViews(from pieces: [Piece], and tiles: [[UIImage]]) -> [Piece: PieceView] {
         var pieceViews = [Piece: PieceView]()
         
         let tileRows = tiles.count
@@ -127,43 +100,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         for row in 0..<tileRows {
             for col in 0..<tileCols {
                 let index = col + row * tileCols
-                // move from left to right, top to bottom; top side must mate to piece above (unless first row edge);
-                // left side must mate to previous piece (unless first col edge); remaining sides are random or edges
-                var sides: [Side] = [
-                    row == 0 ? Side(type: .edge) : pieces[index - tileCols].sides[2].mate,  // top side
-                    col == tileCols - 1 ? Side(type: .edge) : Side.random(),                // right side
-                    row == tileRows - 1 ? Side(type: .edge) : Side.random(),                // bottom side
-                    col == 0 ? Side(type: .edge) : pieces[index - 1].sides[1].mate,         // left side
-                ]
-                // move right-side hole to avoid overlapping top-side hole
-                if sides[1].type == .hole && sides[0].type == .hole {
-                    sides[1].tabPosition = max(sides[1].tabPosition, sides[0].tabPosition - 0.05)
-                }
-                // move bottom-side hole to avoid overlapping right-side hole
-                if sides[2].type == .hole && sides[1].type == .hole {
-                    sides[2].tabPosition = max(sides[2].tabPosition, sides[1].tabPosition - 0.05)
-                }
-                // move bottom-side hole to avoid overlapping left-side hole
-                if sides[2].type == .hole && sides[3].type == .hole {
-                    if sides[1].type == .hole && sides[1].tabPosition >= 0.5 && sides[3].tabPosition <= 0.5 {
-                        // bottom-side hole sandwiched between left- and right-side holes
-                        sides[2].tabPosition = 0.5
-                    } else {
-                        sides[2].tabPosition = min(sides[2].tabPosition, sides[3].tabPosition + 0.05)
-                    }
-                }
-                // move right-side tab, to avoid overlapping left- and top-side holes on piece to the right
-                if row > 0 && col < tileCols - 1 && sides[1].type == .tab && pieces[index - tileCols + 1].sides[2].type == .tab {
-                    sides[1].tabPosition = max(sides[1].tabPosition, pieces[index - tileCols + 1].sides[2].tabPosition - 0.05)
-                }
-                let piece = Piece(sides: sides)
-                pieces.append(piece)
-                let pieceView = createPieceView(sides: sides, image: tiles[row][col])  // create piceView with overlayed image
+                let piece = pieces[index]
+                let pieceView = createPieceView(sides: piece.sides, image: tiles[row][col])  // create piceView with overlayed image
                 pieceViews[piece] = pieceView
             }
         }
         
-        return (pieces, pieceViews)
+        return pieceViews
     }
 
     // create pieceView with pan, double-tap, and single-tap gestures; add to playView
@@ -217,10 +160,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         for row in 0..<rows {
             for col in 0..<cols {
                 let index = col + row * cols
-                let piece = pieces[index]
+                let piece = puzzle.pieces[index]
                 pieceViews[piece]!.center = boardView.frame.origin + CGPoint(x: globalData.innerSize * (0.5 + CGFloat(col)),
                                                                              y: globalData.innerSize * (0.5 + CGFloat(row)))
-                pieces[index].isConnected = true
+                puzzle.pieces[index].isConnected = true
             }
         }
     }
@@ -287,7 +230,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                         // panned piece and target have complementary sides facing each other (snap them together)
                         pannedPieceView.center = targetPieceView.center + CGPoint(x: globalData.innerSize * sin(bearingToPannedPiece.round90.rads),
                                                                                   y: -globalData.innerSize * cos(bearingToPannedPiece.round90.rads))
-                        if pieces[targetPieceIndex].isConnected {
+                        if puzzle.pieces[targetPieceIndex].isConnected {
                             isConnected = true
                         }
                     }
@@ -315,8 +258,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     .limitedToView(safeArea, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
                 
                 // can't combine next two lines into: isConnected = snapToEdge || snapToPiece, since "or" stops checking if first is true
-                pieces[pannedPieceIndex].isConnected = snapToEdge(pannedPiece, pannedPieceView, pannedPieceIndex)
-                pieces[pannedPieceIndex].isConnected = snapToPiece(pannedPiece, pannedPieceView) || pieces[pannedPieceIndex].isConnected
+                puzzle.pieces[pannedPieceIndex].isConnected = snapToEdge(pannedPiece, pannedPieceView, pannedPieceIndex)
+                puzzle.pieces[pannedPieceIndex].isConnected = snapToPiece(pannedPiece, pannedPieceView) || puzzle.pieces[pannedPieceIndex].isConnected
                 
 //            case .ended:
 //                print("pan ended\n\(pieces[pannedPieceIndex])")
@@ -334,7 +277,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
             })
             // update model
-            pieces[pieceIndexFor(tappedPieceView).1].rotation = tappedPieceView.rotation
+            puzzle.pieces[pieceIndexFor(tappedPieceView).1].rotation = tappedPieceView.rotation
         }
     }
     
@@ -364,7 +307,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     func pieceIndexFor(_ pieceView: PieceView) -> (Piece, Int) {
         let piece = pieceFor(pieceView)
-        let pieceIndex = pieces.index(matching: piece)!
+        let pieceIndex = puzzle.pieces.index(matching: piece)!
         return (piece, pieceIndex)
     }
     
