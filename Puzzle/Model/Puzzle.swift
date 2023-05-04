@@ -5,42 +5,18 @@
 //  Created by Phil Stern on 5/3/23.
 //
 
-import UIKit
+import Foundation
 
 struct Puzzle {
     
     var rows = 0
     var cols = 0
     var pieces = [Piece]()  // index = col + row * cols
-
-    // resize image and split into overlapping squares
-    mutating func createTiles(from image: UIImage, fitting container: UIView) -> [[UIImage]] {
-        let globalData = GlobalData.sharedInstance
-
-        // compute maximum size that fits in container, while maintaining image aspect ratio
-        let fitSize = sizeToFit(image, in: container)
-
-        let resizedImage = image.resizedTo(fitSize)
-
-        let tiles = resizedImage.extractTiles(with: CGSize(width: globalData.outerSize, height: globalData.outerSize),
-                                              overlap: globalData.outerSize - globalData.innerSize)!
-        rows = tiles.count
-        cols = tiles[0].count
-        
-        return tiles
-    }
     
-    // compute size that maximizes space in container, while maintaining image aspect ration
-    func sizeToFit(_ image: UIImage, in container: UIView) -> CGSize {
-        let imageAspectRatio = image.size.width / image.size.height
-        let containerAspectRatio = container.bounds.size.width / container.bounds.size.height
-        if imageAspectRatio > containerAspectRatio {
-            // width-limited
-            return CGSize(width: container.bounds.size.width, height: container.bounds.size.width / imageAspectRatio)
-        } else {
-            // height-limited
-            return CGSize(width: container.bounds.size.height * imageAspectRatio, height: container.bounds.size.height)
-        }
+    init(rows: Int = 0, cols: Int = 0) {
+        self.rows = rows
+        self.cols = cols
+        pieces = Puzzle.createPieces(rows: rows, cols: cols)
     }
     
     // create randomly fitting pieces in an array of end-to-end rows
@@ -86,8 +62,4 @@ struct Puzzle {
         
         return pieces
     }
-        
-    static let example = Puzzle(rows: 3,
-                                cols: 3,
-                                pieces: createPieces(rows: 3, cols: 3))
 }

@@ -78,9 +78,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     func createPuzzle(from image: UIImage) {
-        let tiles = puzzle.createTiles(from: image, fitting: autosizedBoardView)  // 2D array of overlapping images
+        let tiles = createTiles(from: image, fitting: autosizedBoardView)  // 2D array of overlapping images
 
-        puzzle.pieces = Puzzle.createPieces(rows: puzzle.rows, cols: puzzle.cols)  // create random fitting piece shapes
+        puzzle = Puzzle(rows: tiles.count, cols: tiles[0].count)
 
         pieceViews.values.forEach { $0.removeFromSuperview() }  // in case choosing a new photo
         pieceViews = createPieceViews(from: puzzle.pieces, and: tiles)  // create puzzle piece shapes overlaid with images
@@ -90,7 +90,34 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         randomlyPlacePiecesInSafeArea()
 //        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
     }
+
+    // resize image and split into overlapping squares
+    func createTiles(from image: UIImage, fitting container: UIView) -> [[UIImage]] {
+        let globalData = GlobalData.sharedInstance
+
+        // compute maximum size that fits in container, while maintaining image aspect ratio
+        let fitSize = sizeToFit(image, in: container)
+
+        let resizedImage = image.resizedTo(fitSize)
+
+        let tiles = resizedImage.extractTiles(with: CGSize(width: globalData.outerSize, height: globalData.outerSize),
+                                              overlap: globalData.outerSize - globalData.innerSize)!
+        return tiles
+    }
     
+    // compute size that maximizes space in container, while maintaining image aspect ration
+    func sizeToFit(_ image: UIImage, in container: UIView) -> CGSize {
+        let imageAspectRatio = image.size.width / image.size.height
+        let containerAspectRatio = container.bounds.size.width / container.bounds.size.height
+        if imageAspectRatio > containerAspectRatio {
+            // width-limited
+            return CGSize(width: container.bounds.size.width, height: container.bounds.size.width / imageAspectRatio)
+        } else {
+            // height-limited
+            return CGSize(width: container.bounds.size.height * imageAspectRatio, height: container.bounds.size.height)
+        }
+    }
+
     func createPieceViews(from pieces: [Piece], and tiles: [[UIImage]]) -> [Piece: PieceView] {
         var pieceViews = [Piece: PieceView]()
         
