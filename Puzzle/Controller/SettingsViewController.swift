@@ -18,17 +18,20 @@ class SettingsViewController: UIViewController {
     
     var outerSize: CGFloat!
     var allowsRotation: Bool!
+    var isOutlined: Bool!
     var pieceSizeSML: PieceSizeSML!
     var updateSettings: (() -> Void)?  // callback
     var pieceViews = [PieceView]()
     
     @IBOutlet weak var rotationSwitch: UISwitch!
+    @IBOutlet weak var outlineSwitch: UISwitch!
     @IBOutlet weak var pieceSizeSegmentedControl: UISegmentedControl!
     @IBOutlet weak var boardView: UIView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         rotationSwitch.isOn = allowsRotation
+        outlineSwitch.isOn = isOutlined
         pieceSizeSegmentedControl.selectedSegmentIndex = pieceSizeSML.rawValue
         outerSize = boardView.bounds.width / CGFloat(5 - pieceSizeSML.rawValue) / PuzzleConst.innerRatio
         createExamplePuzzle(outerSize)
@@ -47,7 +50,7 @@ class SettingsViewController: UIViewController {
                 let index = col + row * dimension
                 let piece = puzzle.pieces[index]
                 let colorImage = UIImage(color: .lightGray, size: CGSize(width: outerSize, height: outerSize))!
-                let pieceView = PieceView(sides: piece.sides, image: colorImage, innerSize: innerSize)
+                let pieceView = PieceView(sides: piece.sides, image: colorImage, innerSize: innerSize, isOutlined: isOutlined)
                 pieceView.frame = CGRect(x: 0, y: 0, width: innerSize, height: innerSize)
                 pieceView.center = CGPoint(x: innerSize * (0.5 + CGFloat(col)),
                                            y: innerSize * (0.5 + CGFloat(row)))
@@ -57,8 +60,14 @@ class SettingsViewController: UIViewController {
         }
     }
     
-    @IBAction func switchChanged(_ sender: UISwitch) {
+    @IBAction func rotationSwitchChanged(_ sender: UISwitch) {
         allowsRotation = sender.isOn
+        updateSettings?()
+    }
+    
+    @IBAction func outlineSwitchChanged(_ sender: UISwitch) {
+        isOutlined = sender.isOn
+        createExamplePuzzle(outerSize)
         updateSettings?()
     }
     

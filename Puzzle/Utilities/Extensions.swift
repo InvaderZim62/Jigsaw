@@ -126,7 +126,7 @@ extension UIImage {
     }
 
     // from: https://stackoverflow.com/questions/49853122
-    func clipImageTo(_ path: UIBezierPath) -> UIImage {
+    func clipImageTo(_ path: UIBezierPath, isOutlined: Bool) -> UIImage {
         UIGraphicsBeginImageContext(size)
         let context = UIGraphicsGetCurrentContext()
         
@@ -134,11 +134,12 @@ extension UIImage {
         context?.clip()
         draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
         
-        // add outline
-        context?.addPath(path.cgPath)
-        context?.setStrokeColor(UIColor.black.cgColor)
-        context?.setLineWidth(2)
-        context?.strokePath()
+        if isOutlined {
+            context?.addPath(path.cgPath)
+            context?.setStrokeColor(UIColor.black.cgColor)
+            context?.setLineWidth(2)
+            context?.strokePath()
+        }
 
         let maskedImage = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()

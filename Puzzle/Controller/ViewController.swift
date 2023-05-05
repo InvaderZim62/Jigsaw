@@ -18,6 +18,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var outerSize: CGFloat = 150
     var innerSize: CGFloat = 150 * PuzzleConst.innerRatio
     var allowsRotation = true
+    var isOutlined = true
     var pieceSizeSML = PieceSizeSML.small
     var image = UIImage(named: "tree")!  // default image
     var boardView = UIView()
@@ -131,7 +132,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             for col in 0..<tileCols {
                 let index = col + row * tileCols
                 let piece = pieces[index]
-                let pieceView = createPieceView(sides: piece.sides, image: tiles[row][col])  // create piceView with overlayed image
+                let pieceView = createPieceView(sides: piece.sides, image: tiles[row][col], isOutlined: isOutlined)  // create piceView with overlayed image
                 pieceViews[piece] = pieceView
             }
         }
@@ -140,8 +141,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
 
     // create pieceView with pan, double-tap, and single-tap gestures; add to playView
-    func createPieceView(sides: [Side], image: UIImage) -> PieceView {
-        let pieceView = PieceView(sides: sides, image: image, innerSize: innerSize)
+    func createPieceView(sides: [Side], image: UIImage, isOutlined: Bool) -> PieceView {
+        let pieceView = PieceView(sides: sides, image: image, innerSize: innerSize, isOutlined: isOutlined)
         pieceView.frame = CGRect(x: 0, y: 0, width: innerSize, height: innerSize)
         pieceView.center = CGPoint(x: innerSize / 2, y: innerSize / 2)
 
@@ -321,9 +322,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let svc = storyboard.instantiateViewController(withIdentifier: "Settings") as? SettingsViewController {
             svc.allowsRotation = allowsRotation
+            svc.isOutlined = isOutlined
             svc.pieceSizeSML = pieceSizeSML
             svc.updateSettings = { [weak self] in
                 self?.allowsRotation = svc.allowsRotation
+                self?.isOutlined = svc.isOutlined
                 self?.pieceSizeSML = svc.pieceSizeSML
                 self?.outerSize = svc.outerSize
                 self?.innerSize = svc.outerSize * PuzzleConst.innerRatio

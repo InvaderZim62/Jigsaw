@@ -24,6 +24,7 @@ struct PieceConst {
 class PieceView: UIView {
     
     var sides: [Side]
+    var isOutlined: Bool
     var outerSize: CGFloat
 
     var rotation: CGFloat {
@@ -32,13 +33,14 @@ class PieceView: UIView {
 
     private var pictureView = UIImageView()  // larger view to hold image
     
-    init(sides: [Side], image: UIImage, innerSize: CGFloat) {
+    init(sides: [Side], image: UIImage, innerSize: CGFloat, isOutlined: Bool) {
         self.sides = sides
+        self.isOutlined = isOutlined
         outerSize = innerSize / PuzzleConst.innerRatio
         super.init(frame: CGRect.zero)  // compiler complains if this isn't here
         pictureView.frame = CGRect(x: 0, y: 0, width: outerSize, height: outerSize)
         pictureView.center = CGPoint(x: innerSize / 2, y: innerSize / 2)
-        pictureView.image = image.clipImageTo(pathForSides(sides))
+        pictureView.image = image.clipImageTo(pathForSides(sides), isOutlined: isOutlined)
         addSubview(pictureView)
     }
     
