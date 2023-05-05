@@ -24,7 +24,7 @@ struct PieceConst {
 class PieceView: UIView {
     
     var sides: [Side]
-    let globalData = GlobalData.sharedInstance
+    var innerSize: CGFloat
 
     var rotation: CGFloat {
         atan2(self.transform.b, self.transform.a).degs  // +/-180 degrees, zero is up, pos is clockwise
@@ -32,11 +32,12 @@ class PieceView: UIView {
 
     private var pictureView = UIImageView()  // larger view to hold image
     
-    init(sides: [Side], image: UIImage) {
+    init(sides: [Side], image: UIImage, innerSize: CGFloat) {
         self.sides = sides
+        self.innerSize = innerSize
         super.init(frame: CGRect.zero)  // compiler complains if this isn't here
-        pictureView.frame = CGRect(x: 0, y: 0, width: globalData.outerSize, height: globalData.outerSize)
-        pictureView.center = CGPoint(x: globalData.innerSize / 2, y: globalData.innerSize / 2)
+        pictureView.frame = CGRect(x: 0, y: 0, width: innerSize / PuzzleConst.innerRatio, height: innerSize / PuzzleConst.innerRatio)
+        pictureView.center = CGPoint(x: innerSize / 2, y: innerSize / 2)
         pictureView.image = image.clipImageTo(pathForSides(sides))
         addSubview(pictureView)
     }
@@ -73,8 +74,9 @@ class PieceView: UIView {
     }
 
     private func addSide(_ side: Side, to path: UIBezierPath) -> UIBezierPath {
-        let leftShoulder = CGPoint(x: globalData.inset, y: globalData.inset)
-        let rightShoulder = CGPoint(x: pictureView.bounds.width - globalData.inset, y: globalData.inset)
+        let inset = innerSize * (1 / PuzzleConst.innerRatio - 1) / 2
+        let leftShoulder = CGPoint(x: inset, y: inset)
+        let rightShoulder = CGPoint(x: pictureView.bounds.width - inset, y: inset)
 
         if first {
             first = false

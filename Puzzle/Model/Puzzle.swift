@@ -9,9 +9,9 @@ import Foundation
 
 struct Puzzle {
     
-    var rows = 0
-    var cols = 0
-    var pieces = [Piece]()  // index = col + row * cols
+    var rows: Int
+    var cols: Int
+    var pieces: [Piece]  // index = col + row * cols
     
     init(rows: Int = 0, cols: Int = 0) {
         self.rows = rows

@@ -98,6 +98,21 @@ extension Collection where Element: IDable {
 }
 
 extension UIImage {
+    // create fixed-color image of given size
+    // usage: let redImage = UIImage(color: .red, size: CGSize(width: 200, height: 200))
+    // from: https://stackoverflow.com/questions/26542035
+    convenience init?(color: UIColor, size: CGSize = CGSize(width: 1, height: 1)) {
+        let rect = CGRect(origin: .zero, size: size)
+        UIGraphicsBeginImageContextWithOptions(rect.size, false, 0.0)
+        color.setFill()
+        UIRectFill(rect)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        guard let cgImage = image?.cgImage else { return nil }
+        self.init(cgImage: cgImage, scale: image!.scale, orientation: image!.imageOrientation)
+    }
+
     // resize image to fit container, without changing aspect ratio
     // from: https://stackoverflow.com/questions/44715322
     func resizedTo(_ newSize: CGSize) -> UIImage {

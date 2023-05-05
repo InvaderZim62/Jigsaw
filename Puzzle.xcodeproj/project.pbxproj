@@ -19,7 +19,6 @@
 		4AC8C4B429F3553800A0E432 /* PieceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC8C4B329F3553800A0E432 /* PieceView.swift */; };
 		4AC8C4B629F3582500A0E432 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC8C4B529F3582500A0E432 /* Extensions.swift */; };
 		4AC8C4B829F3637F00A0E432 /* Side.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC8C4B729F3637F00A0E432 /* Side.swift */; };
-		4AC8C4C029F78E1D00A0E432 /* GlobalData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC8C4BF29F78E1D00A0E432 /* GlobalData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,7 +36,6 @@
 		4AC8C4B329F3553800A0E432 /* PieceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PieceView.swift; sourceTree = "<group>"; };
 		4AC8C4B529F3582500A0E432 /* Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		4AC8C4B729F3637F00A0E432 /* Side.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Side.swift; sourceTree = "<group>"; };
-		4AC8C4BF29F78E1D00A0E432 /* GlobalData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,7 +121,6 @@
 			isa = PBXGroup;
 			children = (
 				4AC8C4B529F3582500A0E432 /* Extensions.swift */,
-				4AC8C4BF29F78E1D00A0E432 /* GlobalData.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -203,7 +200,6 @@
 				4AC8C4B429F3553800A0E432 /* PieceView.swift in Sources */,
 				4AC8C4B029F3536200A0E432 /* Piece.swift in Sources */,
 				4AC8C49F29F3529C00A0E432 /* ViewController.swift in Sources */,
-				4AC8C4C029F78E1D00A0E432 /* GlobalData.swift in Sources */,
 				4A52377A2A036BA900133989 /* Puzzle.swift in Sources */,
 				4AC8C4B829F3637F00A0E432 /* Side.swift in Sources */,
 				4AC8C49B29F3529C00A0E432 /* AppDelegate.swift in Sources */,

@@ -61,8 +61,16 @@
                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rJ4-lH-ia1">
+                                <rect key="frame" x="209" y="337" width="350" height="350"/>
+                                <color key="backgroundColor" systemColor="systemGray5Color"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="rJ4-lH-ia1" secondAttribute="height" multiplier="1:1" id="OcP-qj-UXG"/>
+                                    <constraint firstAttribute="width" constant="350" id="mRj-9N-MXT"/>
+                                </constraints>
+                            </view>
                             <stackView opaque="NO" contentMode="scaleToFill" spacing="26" translatesAutoresizingMaskIntoConstraints="NO" id="JmO-gE-5MS">
-                                <rect key="frame" x="219" y="140" width="330" height="31"/>
+                                <rect key="frame" x="219" y="226" width="330" height="31"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Piece Size:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wGp-sf-jbM">
                                         <rect key="frame" x="0.0" y="0.0" width="98" height="31"/>
@@ -87,11 +95,14 @@
                         <viewLayoutGuide key="safeArea" id="Yo2-hH-5jr"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
+                            <constraint firstItem="rJ4-lH-ia1" firstAttribute="centerY" secondItem="lFN-RV-RLz" secondAttribute="centerY" id="0QD-tb-5Da"/>
+                            <constraint firstItem="rJ4-lH-ia1" firstAttribute="top" secondItem="JmO-gE-5MS" secondAttribute="bottom" constant="80" id="BNi-Hq-f84"/>
+                            <constraint firstItem="rJ4-lH-ia1" firstAttribute="centerX" secondItem="lFN-RV-RLz" secondAttribute="centerX" id="HPD-KG-Nn3"/>
                             <constraint firstItem="JmO-gE-5MS" firstAttribute="centerX" secondItem="lFN-RV-RLz" secondAttribute="centerX" id="NR6-FC-DsF"/>
-                            <constraint firstItem="JmO-gE-5MS" firstAttribute="top" secondItem="Yo2-hH-5jr" secondAttribute="top" constant="120" id="SRB-1w-R3T"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="boardView" destination="rJ4-lH-ia1" id="mv9-8N-fJq"/>
                         <outlet property="pieceSizeSegmentedControl" destination="uFt-wh-R3m" id="YTT-rj-dVb"/>
                     </connections>
                 </viewController>
@@ -121,6 +132,9 @@
     <resources>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemGray5Color">
+            <color red="0.89803921568627454" green="0.89803921568627454" blue="0.91764705882352937" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
