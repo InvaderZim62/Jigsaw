@@ -10,13 +10,15 @@ import UIKit
 struct PuzzleConst {
     static let innerRatio: CGFloat = 0.60  // bigger ratio => bigger inner size (less distance tab cuts into neighboring piece)
     static let snapDistance = 0.1  // percent innerSize
+    static let examplePuzzleWidth = 350.0  // matches hard-wired size in storyboard
 }
 
 class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     var outerSize: CGFloat = 150
     var innerSize: CGFloat = 150 * PuzzleConst.innerRatio
-    var pieceSizeSML = PieceSizeSML.medium
+    var allowsRotation = true
+    var pieceSizeSML = PieceSizeSML.small
     var image = UIImage(named: "tree")!  // default image
     var boardView = UIView()
     var puzzle = Puzzle()
@@ -43,6 +45,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Pick Photo", style: .plain, target: self, action: #selector(importPicture))
             navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(showSettings))
         }
+        outerSize = PuzzleConst.examplePuzzleWidth / CGFloat(5 - pieceSizeSML.rawValue) / PuzzleConst.innerRatio
+        innerSize = outerSize * PuzzleConst.innerRatio
+
 //        safeArea.backgroundColor = .blue
 //        autosizedBoardView.backgroundColor = .yellow
     }
@@ -144,14 +149,14 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         pieceView.isUserInteractionEnabled = true
         pieceView.addGestureRecognizer(pan)
 
-//        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
-//        doubleTap.numberOfTapsRequired = 2
-//        pieceView.addGestureRecognizer(doubleTap)
-//
-//        let singleTap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
-//        singleTap.numberOfTapsRequired = 1
-//        pieceView.addGestureRecognizer(singleTap)
-//        singleTap.require(toFail: doubleTap)  // don't fire singleTap, unless doubleTap fails (this slows down singleTap response)
+        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        doubleTap.numberOfTapsRequired = 2
+        pieceView.addGestureRecognizer(doubleTap)
+
+        let singleTap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        singleTap.numberOfTapsRequired = 1
+        pieceView.addGestureRecognizer(singleTap)
+        singleTap.require(toFail: doubleTap)  // don't fire singleTap, unless doubleTap fails (this slows down singleTap response)
 
         safeArea.addSubview(pieceView)
 
@@ -178,6 +183,12 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         pieceViews.values.forEach {
             $0.center = CGPoint(x: Double.random(in: innerSize/2..<safeArea.bounds.width - innerSize/2),
                                 y: Double.random(in: innerSize/2..<safeArea.bounds.height - innerSize/2))
+            if allowsRotation {
+                let rotation = [0, 1, 2, 3].randomElement()! * 90.CGrads
+                let (_, index) = pieceIndexFor($0)
+                puzzle.pieces[index].rotation = rotation
+                $0.transform = $0.transform.rotated(by: rotation)
+            }
         }
     }
     
@@ -282,12 +293,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 pannedPieceView.center = (pannedPieceInitialCenter + translation)
                     .limitedToView(safeArea, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
                 
-                // can't combine next two lines into: isConnected = snapToEdge || snapToPiece, since "or" stops checking if first is true
+                // don't combine next two lines into: isConnected = snapToEdge || snapToPiece, since "or" stops checking if first is true
                 puzzle.pieces[pannedPieceIndex].isConnected = snapToEdge(pannedPiece, pannedPieceView, pannedPieceIndex)
                 puzzle.pieces[pannedPieceIndex].isConnected = snapToPiece(pannedPiece, pannedPieceView) || puzzle.pieces[pannedPieceIndex].isConnected
-                
-//            case .ended:
-//                print("pan ended\n\(pieces[pannedPieceIndex])")
             default:
                 break
             }
@@ -296,6 +304,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     // rotate piece +90 degrees for single-tap, -90 degrees for double-tap (animated)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
+        guard allowsRotation else { return }
         if let tappedPieceView = recognizer.view as? PieceView {
             safeArea.bringSubviewToFront(tappedPieceView)
             UIView.animate(withDuration: 0.2, animations: {
@@ -311,8 +320,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     @objc func showSettings() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let svc = storyboard.instantiateViewController(withIdentifier: "Settings") as? SettingsViewController {
+            svc.allowsRotation = allowsRotation
             svc.pieceSizeSML = pieceSizeSML
             svc.updateSettings = { [weak self] in
+                self?.allowsRotation = svc.allowsRotation
                 self?.pieceSizeSML = svc.pieceSizeSML
                 self?.outerSize = svc.outerSize
                 self?.innerSize = svc.outerSize * PuzzleConst.innerRatio

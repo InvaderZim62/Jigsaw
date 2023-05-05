@@ -17,15 +17,18 @@ enum PieceSizeSML: Int {
 class SettingsViewController: UIViewController {
     
     var outerSize: CGFloat!
+    var allowsRotation: Bool!
     var pieceSizeSML: PieceSizeSML!
-    var updateSettings: (() -> Void)?
+    var updateSettings: (() -> Void)?  // callback
     var pieceViews = [PieceView]()
     
+    @IBOutlet weak var rotationSwitch: UISwitch!
     @IBOutlet weak var pieceSizeSegmentedControl: UISegmentedControl!
     @IBOutlet weak var boardView: UIView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        rotationSwitch.isOn = allowsRotation
         pieceSizeSegmentedControl.selectedSegmentIndex = pieceSizeSML.rawValue
         outerSize = boardView.bounds.width / CGFloat(5 - pieceSizeSML.rawValue) / PuzzleConst.innerRatio
         createExamplePuzzle(outerSize)
@@ -52,6 +55,11 @@ class SettingsViewController: UIViewController {
                 boardView.addSubview(pieceView)
             }
         }
+    }
+    
+    @IBAction func switchChanged(_ sender: UISwitch) {
+        allowsRotation = sender.isOn
+        updateSettings?()
     }
     
     @IBAction func segmentChanged(_ sender: UISegmentedControl) {
