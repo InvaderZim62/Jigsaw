@@ -16,8 +16,10 @@ enum PieceSizeSML: Int {
 
 class SettingsViewController: UIViewController {
     
+    var outerSize: CGFloat!
     var pieceSizeSML: PieceSizeSML!
     var updateSettings: (() -> Void)?
+    var pieceViews = [PieceView]()
     
     @IBOutlet weak var pieceSizeSegmentedControl: UISegmentedControl!
     @IBOutlet weak var boardView: UIView!
@@ -25,22 +27,28 @@ class SettingsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         pieceSizeSegmentedControl.selectedSegmentIndex = pieceSizeSML.rawValue
-        createExamplePuzzle(outerSize: 150)
+        outerSize = boardView.bounds.width / CGFloat(5 - pieceSizeSML.rawValue) / PuzzleConst.innerRatio
+        createExamplePuzzle(outerSize)
     }
     
-    func createExamplePuzzle(outerSize: CGFloat) {
-        let puzzle = Puzzle(rows: 3, cols: 3)
+    func createExamplePuzzle(_ outerSize: CGFloat) {
         let innerSize = outerSize * PuzzleConst.innerRatio
+        let dimension = Int(boardView.bounds.width / innerSize)
+        let puzzle = Puzzle(rows: dimension, cols: dimension)
+        
+        pieceViews.forEach { $0.removeFromSuperview() }
+        pieceViews.removeAll()
 
-        for row in 0..<3 {
-            for col in 0..<3 {
-                let index = col + row * 3
+        for row in 0..<dimension {
+            for col in 0..<dimension {
+                let index = col + row * dimension
                 let piece = puzzle.pieces[index]
-                let whiteImage = UIImage(color: .white, size: CGSize(width: outerSize, height: outerSize))!
-                let pieceView = PieceView(sides: piece.sides, image: whiteImage, innerSize: innerSize)
+                let colorImage = UIImage(color: .lightGray, size: CGSize(width: outerSize, height: outerSize))!
+                let pieceView = PieceView(sides: piece.sides, image: colorImage, innerSize: innerSize)
                 pieceView.frame = CGRect(x: 0, y: 0, width: innerSize, height: innerSize)
                 pieceView.center = CGPoint(x: innerSize * (0.5 + CGFloat(col)),
                                            y: innerSize * (0.5 + CGFloat(row)))
+                pieceViews.append(pieceView)
                 boardView.addSubview(pieceView)
             }
         }
@@ -48,6 +56,8 @@ class SettingsViewController: UIViewController {
     
     @IBAction func segmentChanged(_ sender: UISegmentedControl) {
         pieceSizeSML = PieceSizeSML(rawValue: sender.selectedSegmentIndex)!
+        outerSize = boardView.bounds.width / CGFloat(5 - pieceSizeSML.rawValue) / PuzzleConst.innerRatio
+        createExamplePuzzle(outerSize)
         updateSettings?()
     }
 }
