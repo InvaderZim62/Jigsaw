@@ -62,9 +62,9 @@ class PieceView: UIView {
         CGAffineTransform(translationX: point.x, y: point.y).rotated(by: CGFloat(angle)).translatedBy(x: -point.x, y: -point.y)
     }
 
-    // create path for one edge at a time, rotating the path 90 deg between each;
-    // path will pick up where the previous left off, but the coordinates will be
-    // relative to the new orientation (PieceView must be square).
+    // create path for one edge at a time, rotating the path 90 deg between each; path will pick up where the
+    // previous left off, but the coordinates will be relative to the new orientation (PieceView must be square).
+    // Note: black outline is applied in extension UIImage.clipImageTo(path:isOutlined:)
     func pathForSides(_ sides: [Side]) -> UIBezierPath {
         var outline = UIBezierPath()
         for index in 0..<4 {

@@ -7,6 +7,11 @@
 //  Useful equations...
 //    piece from pieceView:       puzzle.pieces[pieceIndexFor(pieceView).1].rotation = 90.0
 //
+//  To do...
+//  - allow two-finger pan to move groups of connected pieces
+//  - maybe have taps rotate groups of connected pieces
+//  - alert user that changing settings will re-shuffle puzzle pieces
+//
 
 
 import UIKit
@@ -21,9 +26,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     var outerSize: CGFloat = 150
     var innerSize: CGFloat = 150 * PuzzleConst.innerRatio
-    var allowsRotation = true
-    var isOutlined = true
-    var pieceSizeSML = PieceSizeSML.small
     var image = UIImage(named: "tree")!  // default image
     var boardView = UIView()
     var puzzle = Puzzle()
@@ -34,6 +36,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var pastSafeAreaBounds = CGRect.zero
     var pastBoardViewOrigin = CGPoint.zero
     var once = false
+    
+    // settings
+    var allowsRotation = true
+    var isOutlined = true
+    var pieceSizeSML = PieceSizeSML.small
 
     @IBOutlet weak var safeArea: UIView!
     @IBOutlet weak var autosizedBoardView: UIView!
@@ -50,9 +57,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Pick Photo", style: .plain, target: self, action: #selector(importPicture))
             navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(showSettings))
         }
+        getUserDefaults()
+    
         outerSize = PuzzleConst.examplePuzzleWidth / CGFloat(5 - pieceSizeSML.rawValue) / PuzzleConst.innerRatio
         innerSize = outerSize * PuzzleConst.innerRatio
-
 //        safeArea.backgroundColor = .blue
 //        autosizedBoardView.backgroundColor = .yellow
     }
@@ -84,6 +92,26 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             }
             pastSafeAreaBounds = safeArea.bounds
             pastBoardViewOrigin = boardView.frame.origin
+        }
+    }
+    
+    func getUserDefaults() {
+        let defaults = UserDefaults.standard
+        if defaults.object(forKey: "allowsRotation") != nil {
+            allowsRotation = defaults.bool(forKey: "allowsRotation")
+            isOutlined = defaults.bool(forKey: "isOutlined")
+            if let data = defaults.data(forKey: "pieceSizeSML") {
+                pieceSizeSML = try! JSONDecoder().decode(PieceSizeSML.self, from: data)
+            }
+        }
+    }
+    
+    func saveUserDefaults() {
+        let defaults = UserDefaults.standard
+        defaults.set(allowsRotation, forKey: "allowsRotation")
+        defaults.set(isOutlined, forKey: "isOutlined")
+        if let data = try? JSONEncoder().encode(pieceSizeSML) {
+            defaults.setValue(data, forKey: "pieceSizeSML")
         }
     }
     
@@ -202,9 +230,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 for col in 0..<cols {
                     let index = col + row * cols
                     let piece = self.puzzle.pieces[index]
-                    self.pieceViews[piece.id]!.center = self.boardView.frame.origin + CGPoint(x: self.innerSize * (0.5 + CGFloat(col)),
-                                                                                              y: self.innerSize * (0.5 + CGFloat(row)))
-                    self.pieceViews[piece.id]!.transform = .identity
+                    let pieceView = self.pieceViews[piece.id]!
+                    pieceView.center = self.boardView.frame.origin + CGPoint(x: self.innerSize * (0.5 + CGFloat(col)),
+                                                                             y: self.innerSize * (0.5 + CGFloat(row)))
+                    pieceView.transform = .identity  // un-rotate
                     self.puzzle.pieces[index].rotation = 0
                     self.puzzle.pieces[index].isConnected = true
                 }
@@ -339,6 +368,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 self?.outerSize = svc.outerSize
                 self?.innerSize = svc.outerSize * PuzzleConst.innerRatio
                 self?.createPuzzle(from: self!.image)
+                self?.saveUserDefaults()
             }
             navigationController?.pushViewController(svc, animated: true)
         }
@@ -347,7 +377,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     // open picker controller to browse through photo library
     @objc func importPicture() {
         let picker = UIImagePickerController()
-        picker.allowsEditing = true
+        picker.allowsEditing = false  // matches use of .originalImage in imagePickerController, below
         picker.delegate = self
         present(picker, animated: true)
     }

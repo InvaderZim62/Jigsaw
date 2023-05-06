@@ -10,7 +10,7 @@
 
 import UIKit
 
-enum PieceSizeSML: Int {
+enum PieceSizeSML: Int, Codable {
     case small, medium, large
 }
 

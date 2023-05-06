@@ -130,7 +130,7 @@ extension UIImage {
         if isOutlined {
             context?.addPath(path.cgPath)
             context?.setStrokeColor(UIColor.black.cgColor)
-            context?.setLineWidth(2)
+            context?.setLineWidth(1.4)
             context?.strokePath()
         }
 
