@@ -5,7 +5,7 @@
 //  Created by Phil Stern on 5/3/23.
 //
 //  To do...
-//  - create a mini-puzzle to demonstrate the selected piece size.
+//  - handle boardView width better (use PuzzleConst.examplePuzzleWidth, make boardView.width constraint an outlet...)
 //
 
 import UIKit

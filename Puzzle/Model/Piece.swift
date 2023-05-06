@@ -15,11 +15,15 @@ protocol IDable {
 struct Piece: IDable {  // IDable for index(matching:) in extension Collection
     var sides: [Side]
     var id = UUID()
-    var rotation = 0.0  // degrees, zero is up, pos is clockwise
+    var rotation = 0.0  // +/- 180 degrees, zero is up, pos is clockwise
     var isConnected = false  // true if connected to edge, directly or through a series of pieces
     
-    var edgeIndices: [Int] {
+    var edgeIndices: [Int] {  // 0: sides[0], 1: sides[1], ...
         sides.indices.filter { sides[$0].type == .edge }
+    }
+    
+    var edgePositions: [Int] {  // 0: up, 1: right, 2: down, 3: left
+        edgeIndices.map { ($0 + Int(round((rotation + 360) / 90))) % sides.count }  // +360, to avoid mod of negative index
     }
 }
 

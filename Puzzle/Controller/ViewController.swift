@@ -4,6 +4,10 @@
 //
 //  Created by Phil Stern on 4/21/23.
 //
+//  Useful equations...
+//    piece from pieceView:       puzzle.pieces[pieceIndexFor(pieceView).1].rotation = 90.0
+//
+
 
 import UIKit
 
@@ -185,10 +189,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             $0.center = CGPoint(x: Double.random(in: innerSize/2..<safeArea.bounds.width - innerSize/2),
                                 y: Double.random(in: innerSize/2..<safeArea.bounds.height - innerSize/2))
             if allowsRotation {
-                let rotation = [0, 1, 2, 3].randomElement()! * 90.CGrads
-                let (_, index) = pieceIndexFor($0)
-                puzzle.pieces[index].rotation = rotation
-                $0.transform = $0.transform.rotated(by: rotation)
+                let rotation = [0, 1, 2, 3].randomElement()! * 90.0 - 90  // -90, 0, 90, 180
+                puzzle.pieces[pieceIndexFor($0).1].rotation = rotation
+                $0.transform = $0.transform.rotated(by: rotation.CGrads)
             }
         }
     }
@@ -209,13 +212,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     func snapToEdge(_ pannedPiece: Piece, _ pannedPieceView: PieceView, _ pannedPieceIndex: Int) -> Bool {
         var isConnected = false
         let snap = PuzzleConst.snapDistance * innerSize
-        let edgeIndices = pannedPiece.edgeIndices
-        if edgeIndices.count > 0 {
-            for edgeIndex in edgeIndices {
+        let edgePositions = pannedPiece.edgePositions
+        if edgePositions.count > 0 {
+            for edgePosition in edgePositions {
                 let pieceCenterInBoardCoords = safeArea.convert(pannedPieceView.center, to: boardView)
                 
-                switch edgeIndex {
-                case 0: // top
+                switch edgePosition {
+                case 0: // up
                     let distanceToTop = abs(pieceCenterInBoardCoords.y - innerSize / 2)
                     if distanceToTop < snap && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
                         pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: innerSize / 2), to: safeArea)
@@ -227,7 +230,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                         pannedPieceView.center = boardView.convert(CGPoint(x: boardView.bounds.maxX - innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeArea)
                         isConnected = true
                     }
-                case 2: // bottom
+                case 2: // down
                     let distanceToBottom = abs(boardView.bounds.maxY - pieceCenterInBoardCoords.y - innerSize / 2)
                     if distanceToBottom < snap && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
                         pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: boardView.bounds.maxY - innerSize / 2), to: safeArea)
