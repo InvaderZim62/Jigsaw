@@ -90,13 +90,6 @@ extension CGPoint {
     }
 }
 
-// IDable replicates the Identifiable protocol (available on iOS 13+) for older devices
-extension Collection where Element: IDable {
-    func index(matching element: Element) -> Self.Index? {
-        firstIndex(where: { $0.id == element.id })
-    }
-}
-
 extension UIImage {
     // create fixed-color image of given size
     // usage: let redImage = UIImage(color: .red, size: CGSize(width: 200, height: 200))

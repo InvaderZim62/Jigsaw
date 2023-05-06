@@ -27,7 +27,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var image = UIImage(named: "tree")!  // default image
     var boardView = UIView()
     var puzzle = Puzzle()
-    var pieceViews = [Piece: PieceView]()
+    var pieceViews = [UUID: PieceView]()  // [Piece.id: PieceView]
     var pannedPieceInitialCenter = CGPoint.zero
     var pannedPieceMatchingSide: Int?
     var targetPieceMatchingSide: Int?
@@ -71,7 +71,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             safeArea.setNeedsLayout()  // force boardView bounds to update now, since it normally occurs after viewDidLayoutSubviews
             safeArea.layoutIfNeeded()
             for piece in puzzle.pieces {
-                let pieceView = pieceViews[piece]!
+                let pieceView = pieceViews[piece.id]!
                 if piece.isConnected {
                     // if connected, keep in same position on boardView (move with boardView origin)
                     pieceView.center = pieceView.center + boardView.frame.origin - pastBoardViewOrigin
@@ -126,8 +126,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
     }
 
-    func createPieceViews(from pieces: [Piece], and tiles: [[UIImage]]) -> [Piece: PieceView] {
-        var pieceViews = [Piece: PieceView]()
+    func createPieceViews(from pieces: [Piece], and tiles: [[UIImage]]) -> [UUID: PieceView] {
+        var pieceViews = [UUID: PieceView]()
         
         let tileRows = tiles.count
         let tileCols = tiles[0].count
@@ -137,7 +137,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 let index = col + row * tileCols
                 let piece = pieces[index]
                 let pieceView = createPieceView(sides: piece.sides, image: tiles[row][col], isOutlined: isOutlined)  // create piceView with overlayed image
-                pieceViews[piece] = pieceView
+                pieceViews[piece.id] = pieceView
             }
         }
         
@@ -201,8 +201,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             for col in 0..<cols {
                 let index = col + row * cols
                 let piece = puzzle.pieces[index]
-                pieceViews[piece]!.center = boardView.frame.origin + CGPoint(x: innerSize * (0.5 + CGFloat(col)),
-                                                                             y: innerSize * (0.5 + CGFloat(row)))
+                pieceViews[piece.id]!.center = boardView.frame.origin + CGPoint(x: innerSize * (0.5 + CGFloat(col)),
+                                                                                y: innerSize * (0.5 + CGFloat(row)))
                 puzzle.pieces[index].isConnected = true
             }
         }
@@ -350,13 +350,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     // MARK: - Utilities
     
     func pieceIndexFor(_ pieceView: PieceView) -> (Piece, Int) {
-        let piece = pieceFor(pieceView)
-        let pieceIndex = puzzle.pieces.index(matching: piece)!
-        return (piece, pieceIndex)
+        let pieceID = pieceIDFor(pieceView)
+        let pieceIndex = puzzle.pieces.firstIndex(where: { $0.id == pieceID })!
+        return (puzzle.pieces[pieceIndex], pieceIndex)
     }
     
-    func pieceFor(_ pieceView: PieceView) -> Piece {
-        pieceViews.getKey(forValue: pieceView)!  // copy of piece (don't manipulate)
+    func pieceIDFor(_ pieceView: PieceView) -> UUID {
+        pieceViews.getKey(forValue: pieceView)!
     }
 
     func sideIndexFor(bearing: Double) -> Int? {  // assumes bearing from 0 to 360 degrees
