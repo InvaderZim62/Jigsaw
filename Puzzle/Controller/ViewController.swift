@@ -13,7 +13,6 @@
 //  - alert user that changing settings will re-shuffle puzzle pieces
 //
 
-
 import UIKit
 
 struct PuzzleConst {
@@ -80,8 +79,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             safeArea.layoutIfNeeded()
             for piece in puzzle.pieces {
                 let pieceView = pieceViews[piece.id]!
-                if piece.isConnected {
-                    // if connected, keep in same position on boardView (move with boardView origin)
+                if piece.isAnchored {
+                    // if anchored, keep in same position on boardView (move with boardView origin)
                     pieceView.center = pieceView.center + boardView.frame.origin - pastBoardViewOrigin
                 } else {
                     // if not connected, move to same relative position in safeArea
@@ -126,7 +125,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         createBoardView(puzzle.cols, puzzle.rows)
         
         randomlyPlacePiecesInSafeArea()
-//        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
+        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
     }
 
     // resize image and split into overlapping squares
@@ -235,7 +234,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                                                                              y: self.innerSize * (0.5 + CGFloat(row)))
                     pieceView.transform = .identity  // un-rotate
                     self.puzzle.pieces[index].rotation = 0
-                    self.puzzle.pieces[index].isConnected = true
+                    self.puzzle.pieces[index].isAnchored = true
                 }
             }
         })
@@ -243,7 +242,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 
     // snap panned edge piece to nearby side of boardView
     func snapToEdge(_ pannedPiece: Piece, _ pannedPieceView: PieceView, _ pannedPieceIndex: Int) -> Bool {
-        var isConnected = false
+        var isAnchored = false
         let snap = PuzzleConst.snapDistance * innerSize
         let edgePositions = pannedPiece.edgePositions
         if edgePositions.count > 0 {
@@ -255,37 +254,36 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     let distanceToTop = abs(pieceCenterInBoardCoords.y - innerSize / 2)
                     if distanceToTop < snap && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
                         pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: innerSize / 2), to: safeArea)
-                        isConnected = true
+                        isAnchored = true
                     }
                 case 1: // right
                     let distanceToRight = abs(boardView.bounds.maxX - pieceCenterInBoardCoords.x - innerSize / 2)
                     if distanceToRight < snap && pieceCenterInBoardCoords.y > 0 && pieceCenterInBoardCoords.y < boardView.bounds.maxY {
                         pannedPieceView.center = boardView.convert(CGPoint(x: boardView.bounds.maxX - innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeArea)
-                        isConnected = true
+                        isAnchored = true
                     }
                 case 2: // down
                     let distanceToBottom = abs(boardView.bounds.maxY - pieceCenterInBoardCoords.y - innerSize / 2)
                     if distanceToBottom < snap && pieceCenterInBoardCoords.x > 0 && pieceCenterInBoardCoords.x < boardView.bounds.maxX {
                         pannedPieceView.center = boardView.convert(CGPoint(x: pieceCenterInBoardCoords.x, y: boardView.bounds.maxY - innerSize / 2), to: safeArea)
-                        isConnected = true
+                        isAnchored = true
                     }
                 case 3: // left
                     let distanceToLeft = abs(pieceCenterInBoardCoords.x - innerSize / 2)
                     if distanceToLeft < snap && pieceCenterInBoardCoords.y > 0 && pieceCenterInBoardCoords.y < boardView.bounds.maxY {
                         pannedPieceView.center = boardView.convert(CGPoint(x: innerSize / 2, y: pieceCenterInBoardCoords.y), to: safeArea)
-                        isConnected = true
+                        isAnchored = true
                     }
                 default:
                     break
                 }
             }
         }
-        return isConnected
+        return isAnchored
     }
 
     // snap panned piece to nearby mating piece, if any (may not be the correct one)
-    func snapToPiece(_ pannedPiece: Piece, _ pannedPieceView: PieceView) -> Bool {
-        var isConnected = false
+    func snapToPiece(_ pannedPiece: Piece, _ pannedPieceView: PieceView) -> Int? {
         let snapDistance = PuzzleConst.snapDistance * innerSize
         let targetPieceViews = pieceViews.filter { $0.value != pannedPieceView }  // all pieces, excluding panned piece
         for targetPieceView in targetPieceViews.values {
@@ -311,10 +309,12 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 }
             }
         }
-        return isConnected
+        return nil
     }
     
     // MARK: - Gestures
+    
+    var lastGroupNumber = 0
 
     @objc private func handlePan(recognizer: UIPanGestureRecognizer) {
         if let pannedPieceView = recognizer.view as? PieceView {
@@ -331,9 +331,21 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 pannedPieceView.center = (pannedPieceInitialCenter + translation)
                     .limitedToView(safeArea, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
                 
-                // don't combine next two lines into: isConnected = snapToEdge || snapToPiece, since "or" stops checking if first is true
-                puzzle.pieces[pannedPieceIndex].isConnected = snapToEdge(pannedPiece, pannedPieceView, pannedPieceIndex)
-                puzzle.pieces[pannedPieceIndex].isConnected = snapToPiece(pannedPiece, pannedPieceView) || puzzle.pieces[pannedPieceIndex].isConnected
+                puzzle.pieces[pannedPieceIndex].isAnchored = snapToEdge(pannedPiece, pannedPieceView, pannedPieceIndex)
+                
+                if let targetPieceIndex = snapToPiece(pannedPiece, pannedPieceView) {
+                    // connected to targetPiece
+                    let targetPiece = puzzle.pieces[targetPieceIndex]  // copy of piece (don't manipulate)
+                    puzzle.pieces[pannedPieceIndex].isAnchored = puzzle.pieces[pannedPieceIndex].isAnchored || targetPiece.isAnchored
+                    if targetPiece.groupNumber == 0 {
+                        puzzle.pieces[targetPieceIndex].groupNumber = lastGroupNumber + 1
+                        lastGroupNumber += 1
+                    }
+                    puzzle.pieces[pannedPieceIndex].groupNumber = targetPiece.groupNumber  // assume target's groupNumber
+                } else {
+                    // disconnected from other pieces
+                    puzzle.pieces[pannedPieceIndex].groupNumber = 0
+                }
             default:
                 break
             }

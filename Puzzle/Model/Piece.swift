@@ -11,7 +11,8 @@ struct Piece {
     var sides: [Side]
     var id = UUID()
     var rotation = 0.0  // +/- 180 degrees, zero is up, pos is clockwise
-    var isConnected = false  // true if connected to edge, directly or through a series of pieces
+    var isAnchored = false  // true if connected to edge, directly or through a series of pieces
+    var groupNumber = 0
     
     var edgeIndices: [Int] {  // 0: sides[0], 1: sides[1], ...
         sides.indices.filter { sides[$0].type == .edge }
@@ -34,7 +35,7 @@ extension Piece: Hashable {  // Hashable to use as dictionary key
 
 extension Piece: CustomStringConvertible {
     var description: String {
-        var string = "isConnected: \(isConnected)\n"
+        var string = "isAnchored: \(isAnchored)\n"
         for (index, side) in sides.enumerated() {
             string += "\(index): \(side)\n"
         }
