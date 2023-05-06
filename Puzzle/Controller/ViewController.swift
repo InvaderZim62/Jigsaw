@@ -197,15 +197,19 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     func solvePuzzle(rows: Int, cols: Int) {
-        for row in 0..<rows {
-            for col in 0..<cols {
-                let index = col + row * cols
-                let piece = puzzle.pieces[index]
-                pieceViews[piece.id]!.center = boardView.frame.origin + CGPoint(x: innerSize * (0.5 + CGFloat(col)),
-                                                                                y: innerSize * (0.5 + CGFloat(row)))
-                puzzle.pieces[index].isConnected = true
+        UIView.animate(withDuration: 0.6, animations: {
+            for row in 0..<rows {
+                for col in 0..<cols {
+                    let index = col + row * cols
+                    let piece = self.puzzle.pieces[index]
+                    self.pieceViews[piece.id]!.center = self.boardView.frame.origin + CGPoint(x: self.innerSize * (0.5 + CGFloat(col)),
+                                                                                              y: self.innerSize * (0.5 + CGFloat(row)))
+                    self.pieceViews[piece.id]!.transform = .identity
+                    self.puzzle.pieces[index].rotation = 0
+                    self.puzzle.pieces[index].isConnected = true
+                }
             }
-        }
+        })
     }
 
     // snap panned edge piece to nearby side of boardView
@@ -253,19 +257,20 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     // snap panned piece to nearby mating piece, if any (may not be the correct one)
     func snapToPiece(_ pannedPiece: Piece, _ pannedPieceView: PieceView) -> Bool {
         var isConnected = false
-        let snap = PuzzleConst.snapDistance * innerSize
+        let snapDistance = PuzzleConst.snapDistance * innerSize
         let targetPieceViews = pieceViews.filter { $0.value != pannedPieceView }  // all pieces, excluding panned piece
         for targetPieceView in targetPieceViews.values {
             let (targetPiece, targetPieceIndex) = pieceIndexFor(targetPieceView)
             let distanceToTarget = pannedPieceView.center.distance(from: targetPieceView.center)
-            if distanceToTarget < innerSize + snap && distanceToTarget > innerSize - snap {  // may be more than one (will use first)
-                // panned piece is aligned horizontally or vertically to potential target within threshold
+            if distanceToTarget < innerSize + snapDistance && distanceToTarget > innerSize - snapDistance {  // may be more than one (will use first)
+                // panned piece is within snapDistance of potential target
                 let bearingToPannedPiece = targetPieceView.center.bearing(to: pannedPieceView.center)
                 let bearingInTargetFrame = (bearingToPannedPiece - targetPieceView.rotation).wrap360
                 let bearingInPannedPieceFrame = (bearingToPannedPiece + 180 - pannedPieceView.rotation).wrap360
                 if let targetSideIndex = sideIndexFor(bearing: bearingInTargetFrame),
                    let pannedPieceSideIndex = sideIndexFor(bearing: bearingInPannedPieceFrame) {
-                    // obtained indices of sides facing each other
+                    // panned piece is aligned horizontally or vertically to potential target
+                    // within threshold and indices of sides facing each other obtained
                     if targetPiece.sides[targetSideIndex].mate == pannedPiece.sides[pannedPieceSideIndex] {
                         // panned piece and target have complementary sides facing each other (snap them together)
                         pannedPieceView.center = targetPieceView.center + CGPoint(x: innerSize * sin(bearingToPannedPiece.round90.rads),
