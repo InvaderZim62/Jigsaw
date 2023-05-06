@@ -21,7 +21,7 @@ struct PuzzleConst {
     static let examplePuzzleWidth = 350.0  // matches hard-wired size in storyboard
 }
 
-class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {  // Picker & Nav required for UIImagePickerController
     
     var outerSize: CGFloat = 150
     var innerSize: CGFloat = 150 * PuzzleConst.innerRatio
@@ -34,6 +34,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var targetPieceMatchingSide: Int?
     var pastSafeAreaBounds = CGRect.zero
     var pastBoardViewOrigin = CGPoint.zero
+    var lastGroupNumber = 0
     var once = false
     
     // settings
@@ -125,7 +126,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         createBoardView(puzzle.cols, puzzle.rows)
         
         randomlyPlacePiecesInSafeArea()
-        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
+//        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
     }
 
     // resize image and split into overlapping squares
@@ -176,10 +177,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         let pieceView = PieceView(sides: sides, image: image, innerSize: innerSize, isOutlined: isOutlined)
         pieceView.frame = CGRect(x: 0, y: 0, width: innerSize, height: innerSize)
         pieceView.center = CGPoint(x: innerSize / 2, y: innerSize / 2)
+        pieceView.isUserInteractionEnabled = true
 
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
-        pieceView.isUserInteractionEnabled = true
         pieceView.addGestureRecognizer(pan)
+
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
+        pieceView.addGestureRecognizer(longPress)
 
         let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
         doubleTap.numberOfTapsRequired = 2
@@ -302,9 +306,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                         // panned piece and target have complementary sides facing each other (snap them together)
                         pannedPieceView.center = targetPieceView.center + CGPoint(x: innerSize * sin(bearingToPannedPiece.round90.rads),
                                                                                   y: -innerSize * cos(bearingToPannedPiece.round90.rads))
-                        if puzzle.pieces[targetPieceIndex].isConnected {
-                            isConnected = true
-                        }
+                        return targetPieceIndex
                     }
                 }
             }
@@ -314,17 +316,17 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     // MARK: - Gestures
     
-    var lastGroupNumber = 0
-
     @objc private func handlePan(recognizer: UIPanGestureRecognizer) {
         if let pannedPieceView = recognizer.view as? PieceView {
             let (pannedPiece, pannedPieceIndex) = pieceIndexFor(pannedPieceView)  // copy of piece (don't manipulate)
             switch recognizer.state {
             case .began:
+                print()
                 pannedPieceInitialCenter = pannedPieceView.center
                 safeArea.bringSubviewToFront(pannedPieceView)
                 fallthrough
             case .changed:
+                print("P", terminator: "")
                 // move panned piece, limited to edges of safeArea
                 let translation = recognizer.translation(in: safeArea)
                 let edgeInset = innerSize / 4
@@ -352,9 +354,21 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
     }
     
+    @objc private func handleLongPress(recognizer: UIPanGestureRecognizer) {
+        switch recognizer.state {
+        case .began:
+            print()
+        case .changed:
+            print("L", terminator: "")
+        default:
+            break
+        }
+    }
+
     // rotate piece +90 degrees for single-tap, -90 degrees for double-tap (animated)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
         guard allowsRotation else { return }
+        print("\nT")
         if let tappedPieceView = recognizer.view as? PieceView {
             safeArea.bringSubviewToFront(tappedPieceView)
             UIView.animate(withDuration: 0.2, animations: {
