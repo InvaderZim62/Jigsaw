@@ -34,7 +34,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var targetPieceMatchingSide: Int?
     var pastSafeAreaBounds = CGRect.zero
     var pastBoardViewOrigin = CGPoint.zero
-    var lastGroupNumber = 0
+    var nextGroupNumber = 1
     var once = false
     
     // settings
@@ -239,7 +239,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     pieceView.transform = .identity  // un-rotate
                     self.puzzle.pieces[index].rotation = 0
                     self.puzzle.pieces[index].isAnchored = true
-                    self.puzzle.pieces[index].groupNumber = self.lastGroupNumber + 1
+                    self.puzzle.pieces[index].groupNumber = self.nextGroupNumber
                     if col > 0 {
                         self.puzzle.pieces[index].connectedIndices.insert(index - 1)
                     }
@@ -254,7 +254,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     }
                 }
             }
-            self.lastGroupNumber += 1
+            self.nextGroupNumber += 1
         })
     }
 
@@ -393,8 +393,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     }
                     
                     // give entire connected group a new group number
-                    newGroupIndices.forEach { puzzle.pieces[$0].groupNumber = lastGroupNumber + 1 }
-                    lastGroupNumber += 1
+                    newGroupIndices.forEach { puzzle.pieces[$0].groupNumber = nextGroupNumber }
+                    nextGroupNumber += 1
                     
                     // if any in new group is anchored, anchor all
                     let isAnyAnchored = newGroupIndices.filter { puzzle.pieces[$0].isAnchored }.count > 0
@@ -411,8 +411,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     for oldGroupPiecesIndex in oldGroupPiecesIndices {
                         if !accountedPieceIndices.contains(oldGroupPiecesIndex) {
                             let newGroupIndices = connectedList([], for: oldGroupPiecesIndex)
-                            newGroupIndices.forEach { puzzle.pieces[$0].groupNumber = (newGroupIndices.count == 1 ? 0 : lastGroupNumber + 1) }
-                            lastGroupNumber += 1
+                            newGroupIndices.forEach { puzzle.pieces[$0].groupNumber = (newGroupIndices.count == 1 ? 0 : nextGroupNumber) }
+                            nextGroupNumber += 1
                             accountedPieceIndices += newGroupIndices
                         }
                     }
