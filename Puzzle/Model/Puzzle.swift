@@ -19,6 +19,21 @@ struct Puzzle {
         pieces = Puzzle.createPieces(rows: rows, cols: cols)
     }
     
+    func piecesInGroup(_ groupNumber: Int) -> [Piece] {
+        return pieces.filter( { $0.groupNumber == groupNumber })
+    }
+    
+//    mutating func resetSingletonGroups() -> [Piece] {
+//        var singletonPieces = [Piece]()
+//        for (index, piece) in pieces.enumerated() {
+//            if piecesInGroup(piece.groupNumber).count == 1 {
+//                pieces[index].groupNumber = 0
+//                singletonPieces.append(piece)
+//            }
+//        }
+//        return singletonPieces
+//    }
+    
     // create randomly fitting pieces in an array of end-to-end rows
     static func createPieces(rows: Int, cols: Int) -> [Piece] {
         var pieces = [Piece]()

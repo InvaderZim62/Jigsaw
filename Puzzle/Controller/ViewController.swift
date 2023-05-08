@@ -29,7 +29,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var boardView = UIView()
     var puzzle = Puzzle()
     var pieceViews = [UUID: PieceView]()  // [Piece.id: PieceView]
-    var pannedPieceInitialCenter = CGPoint.zero
     var pannedPieceMatchingSide: Int?
     var targetPieceMatchingSide: Int?
     var pastSafeAreaBounds = CGRect.zero
@@ -316,24 +315,29 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     // MARK: - Gestures
     
+    var selectedPieceViews = [PieceView]()  // pieces that are grouped with panned piece, if highlighted
+    
     @objc private func handlePan(recognizer: UIPanGestureRecognizer) {
         if let pannedPieceView = recognizer.view as? PieceView {
             let (pannedPiece, pannedPieceIndex) = pieceIndexFor(pannedPieceView)  // copy of piece (don't manipulate)
             switch recognizer.state {
             case .began:
-                print()
-                pannedPieceInitialCenter = pannedPieceView.center
                 safeArea.bringSubviewToFront(pannedPieceView)
-                fallthrough
+                if pannedPieceView.isHighlighted {
+                    let selectedPieces = puzzle.piecesInGroup(pannedPiece.groupNumber)
+                    selectedPieceViews = selectedPieces.map { pieceViews[$0.id]! }
+                } else {
+                    selectedPieceViews = [pannedPieceView]
+                }
             case .changed:
-                print("P", terminator: "")
                 // move panned piece, limited to edges of safeArea
                 let translation = recognizer.translation(in: safeArea)
-                let edgeInset = innerSize / 4
-                pannedPieceView.center = (pannedPieceInitialCenter + translation)
-                    .limitedToView(safeArea, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
-                
+                selectedPieceViews.forEach { $0.center += translation }
+                recognizer.setTranslation(CGPoint.zero, in: safeArea)
+
                 puzzle.pieces[pannedPieceIndex].isAnchored = snapToEdge(pannedPiece, pannedPieceView, pannedPieceIndex)
+                
+                // pws: how to snap group of pieces???
                 
                 if let targetPieceIndex = snapToPiece(pannedPiece, pannedPieceView) {
                     // connected to targetPiece
@@ -348,6 +352,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     // disconnected from other pieces
                     puzzle.pieces[pannedPieceIndex].groupNumber = 0
                 }
+//            case .ended, .cancelled:
+//                let singletonPieces = puzzle.resetSingletonGroups()  // in case panning out of a group of two (pws: can't pan out of highlighted group)
+//                singletonPieces.forEach { pieceViews[$0.id]!.isHighlighted = false }
             default:
                 break
             }
@@ -355,20 +362,32 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     @objc private func handleLongPress(recognizer: UIPanGestureRecognizer) {
-        switch recognizer.state {
-        case .began:
-            print()
-        case .changed:
-            print("L", terminator: "")
-        default:
-            break
+        if let pressedPieceView = recognizer.view as? PieceView {
+            switch recognizer.state {
+            case .began:
+                let (pressedPiece, _) = pieceIndexFor(pressedPieceView)
+                if pressedPiece.groupNumber == 0 {
+                    // pressed piece not in a group (just toggle its highlight)
+                    pressedPieceView.isHighlighted.toggle()
+                    safeArea.bringSubviewToFront(pressedPieceView)
+                } else {
+                    // pressed piece in a group (toggle highlight of whole group)
+                    let groupedPieces = puzzle.piecesInGroup(pressedPiece.groupNumber)
+                    for piece in groupedPieces {
+                        let pieceView = pieceViews[piece.id]!
+                        pieceView.isHighlighted.toggle()
+                        safeArea.bringSubviewToFront(pieceView)
+                    }
+                }
+            default:
+                break
+            }
         }
     }
 
     // rotate piece +90 degrees for single-tap, -90 degrees for double-tap (animated)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
         guard allowsRotation else { return }
-        print("\nT")
         if let tappedPieceView = recognizer.view as? PieceView {
             safeArea.bringSubviewToFront(tappedPieceView)
             UIView.animate(withDuration: 0.2, animations: {

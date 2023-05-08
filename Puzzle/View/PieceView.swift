@@ -24,31 +24,38 @@ struct PieceConst {
 class PieceView: UIView {
     
     var sides: [Side]
+    var image: UIImage
     var isOutlined: Bool
     var outerSize: CGFloat
+    var isHighlighted = false {
+        didSet {
+            first = true
+            pictureView.image = image.clipImageTo(pathForSides(sides), isOutlined: isOutlined, isHighlighted: isHighlighted)
+        }
+    }
 
     var rotation: CGFloat {
         atan2(self.transform.b, self.transform.a).degs  // +/-180 degrees, zero is up, pos is clockwise
     }
-
+    
+    private var first = true
     private var pictureView = UIImageView()  // larger view to hold image
     
     init(sides: [Side], image: UIImage, innerSize: CGFloat, isOutlined: Bool) {
         self.sides = sides
+        self.image = image
         self.isOutlined = isOutlined
         outerSize = innerSize / PuzzleConst.innerRatio
         super.init(frame: CGRect.zero)  // compiler complains if this isn't here
         pictureView.frame = CGRect(x: 0, y: 0, width: outerSize, height: outerSize)
         pictureView.center = CGPoint(x: innerSize / 2, y: innerSize / 2)
-        pictureView.image = image.clipImageTo(pathForSides(sides), isOutlined: isOutlined)
+        pictureView.image = image.clipImageTo(pathForSides(sides), isOutlined: isOutlined, isHighlighted: false)
         addSubview(pictureView)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    private var first = true
 
     // lazy, since they use bounds (ok to use during init, since not using constraints)
     private lazy var frameCenter = CGPoint(x: pictureView.frame.width / 2.0, y: pictureView.frame.height / 2.0)
