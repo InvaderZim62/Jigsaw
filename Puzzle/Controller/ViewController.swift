@@ -326,7 +326,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     // MARK: - Gestures
     
     var panningPieceViews = [PieceView]()  // pieceViews grouped with panned piece, if highlighted (just panned pieceView, if not highlighted)
-    
+    var initialCenters = [CGPoint]()
+
     @objc private func handlePan(recognizer: UIPanGestureRecognizer) {
         if let pannedPieceView = recognizer.view as? PieceView {
             let (pannedPiece, pannedPieceIndex) = pieceIndexFor(pannedPieceView)  // copy of piece (don't manipulate)
@@ -336,18 +337,22 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 if pannedPieceView.isHighlighted {
                     if pannedPiece.groupNumber == 0 {
                         panningPieceViews = [pannedPieceView]
+                        initialCenters = [pannedPieceView.center]
                     } else {
                         let panningPieces = puzzle.piecesInGroup(pannedPiece.groupNumber)
                         panningPieceViews = panningPieces.map { pieceViews[$0.id]! }
+                        initialCenters = panningPieces.map { pieceViews[$0.id]!.center }
                     }
                 } else {
                     panningPieceViews = [pannedPieceView]
+                    initialCenters = [pannedPieceView.center]
                 }
             case .changed:
-                // move panned piece, limited to edges of safeArea
+                // move panned pieces together
                 let translation = recognizer.translation(in: safeArea)
-                panningPieceViews.forEach { $0.center += translation }
-                recognizer.setTranslation(CGPoint.zero, in: safeArea)
+                for (index, panningPieceView) in panningPieceViews.enumerated() {
+                    panningPieceView.center = (initialCenters[index] + translation)
+                }
 
                 puzzle.pieces[pannedPieceIndex].isAnchored = snapToEdge(pannedPiece, pannedPieceView, pannedPieceIndex)
                 
