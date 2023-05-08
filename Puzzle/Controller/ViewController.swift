@@ -126,7 +126,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         createBoardView(puzzle.cols, puzzle.rows)
         
         randomlyPlacePiecesInSafeArea()
-        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
+//        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
     }
 
     // resize image and split into overlapping squares
@@ -358,6 +358,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                         initialCenters = panningPieces.map { pieceViews[$0.id]!.center }
                     }
                 } else {
+                    pieceViews.values.forEach { $0.isHighlighted = false }
                     panningPieceViews = [pannedPieceView]
                     initialCenters = [pannedPieceView.center]
                 }
@@ -405,7 +406,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     // disconnected from other pieces
                     puzzle.removeConnectionsTo(pannedPieceIndex)
                     puzzle.pieces[pannedPieceIndex].groupNumber = 0
-                    // if disconnecting piece splits group into two or more, change group number of new groups
+                    // if disconnecting piece splits group into two or more separate groups, change group number of each group
                     let oldGroupPiecesIndices = puzzle.pieceIndicesInGroup(pannedPiece.groupNumber)
                     var accountedPieceIndices = [Int]()
                     for oldGroupPiecesIndex in oldGroupPiecesIndices {
@@ -437,6 +438,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     @objc private func handleLongPress(recognizer: UIPanGestureRecognizer) {
         if let pressedPieceView = recognizer.view as? PieceView {
+            if !pressedPieceView.isHighlighted {
+                // first remove all highlighting, if long-pressed piece is unhighlighted
+                pieceViews.values.forEach { $0.isHighlighted = false }
+            }
             switch recognizer.state {
             case .began:
                 let (pressedPiece, _) = pieceIndexFor(pressedPieceView)
@@ -465,13 +470,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         guard allowsRotation else { return }
         if let tappedPieceView = recognizer.view as? PieceView {
             safeArea.bringSubviewToFront(tappedPieceView)
-//            UIView.animate(withDuration: 0.2, animations: {
-//                tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
-//            })
+            UIView.animate(withDuration: 0.2, animations: {
+                tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
+            })
             // update model
             puzzle.pieces[pieceIndexFor(tappedPieceView).1].rotation = tappedPieceView.rotation
-            let piece = puzzle.pieces[pieceIndexFor(tappedPieceView).1]
-            print("group: \(piece.groupNumber), connections: \(piece.connectedIndices)")
+//            let piece = puzzle.pieces[pieceIndexFor(tappedPieceView).1]  // use for debugging
+//            print("group: \(piece.groupNumber), connections: \(piece.connectedIndices)")
         }
     }
     
