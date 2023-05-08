@@ -27,6 +27,11 @@ struct Puzzle {
         return pieces.indices.filter { pieces[$0].groupNumber == groupNumber }
     }
     
+    mutating func removeConnectionsTo(_ index: Int) {
+        pieces[index].connectedIndices = []
+        pieces.indices.forEach { pieces[$0].connectedIndices.remove(index) }
+    }
+    
     // create randomly fitting pieces in an array of end-to-end rows
     static func createPieces(rows: Int, cols: Int) -> [Piece] {
         var pieces = [Piece]()

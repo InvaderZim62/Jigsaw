@@ -239,8 +239,22 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     pieceView.transform = .identity  // un-rotate
                     self.puzzle.pieces[index].rotation = 0
                     self.puzzle.pieces[index].isAnchored = true
+                    self.puzzle.pieces[index].groupNumber = self.lastGroupNumber + 1
+                    if col > 0 {
+                        self.puzzle.pieces[index].connectedIndices.insert(index - 1)
+                    }
+                    if col < cols - 1 {
+                        self.puzzle.pieces[index].connectedIndices.insert(index + 1)
+                    }
+                    if row > 0 {
+                        self.puzzle.pieces[index].connectedIndices.insert(index - cols)
+                    }
+                    if row < rows - 1 {
+                        self.puzzle.pieces[index].connectedIndices.insert(index + cols)
+                    }
                 }
             }
+            self.lastGroupNumber += 1
         })
     }
 
@@ -359,6 +373,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 // pws: how to snap group of pieces???
                 
                 let targetPieceIndices = snapToPieces(pannedPiece, pannedPieceView)
+                
+                // store connections
+                targetPieceIndices.forEach { puzzle.pieces[$0].connectedIndices.insert(pannedPieceIndex) }  // add panned piece to target's connection
+                targetPieceIndices.forEach { puzzle.pieces[pannedPieceIndex].connectedIndices.insert($0) }  // add target pieces to panned piece's connection
+                
                 if targetPieceIndices.count > 0 {
                     // connected to targetPiece(s)
                     var newGroupIndices = [pannedPieceIndex]
@@ -373,7 +392,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                         }
                     }
                     
-                    // give entire connected group a new number
+                    // give entire connected group a new group number
                     newGroupIndices.forEach { puzzle.pieces[$0].groupNumber = lastGroupNumber + 1 }
                     lastGroupNumber += 1
                     
@@ -384,16 +403,36 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     }
                 } else {
                     // disconnected from other pieces
+                    puzzle.removeConnectionsTo(pannedPieceIndex)
                     puzzle.pieces[pannedPieceIndex].groupNumber = 0
-                    // pws: if disconnecting piece splits group into two or more, change group number of new groups
+                    // if disconnecting piece splits group into two or more, change group number of new groups
+                    let oldGroupPiecesIndices = puzzle.pieceIndicesInGroup(pannedPiece.groupNumber)
+                    var accountedPieceIndices = [Int]()
+                    for oldGroupPiecesIndex in oldGroupPiecesIndices {
+                        if !accountedPieceIndices.contains(oldGroupPiecesIndex) {
+                            let newGroupIndices = connectedList([], for: oldGroupPiecesIndex)
+                            newGroupIndices.forEach { puzzle.pieces[$0].groupNumber = (newGroupIndices.count == 1 ? 0 : lastGroupNumber + 1) }
+                            lastGroupNumber += 1
+                            accountedPieceIndices += newGroupIndices
+                        }
+                    }
                 }
 //            case .ended, .cancelled:
-//                let singletonPieces = puzzle.resetSingletonGroups()  // in case panning out of a group of two (pws: can't pan out of highlighted group)
-//                singletonPieces.forEach { pieceViews[$0.id]!.isHighlighted = false }
             default:
                 break
             }
         }
+    }
+    
+    func connectedList(_ list: [Int], for pieceIndex: Int) -> [Int] {
+        var newList = list + [pieceIndex]
+        let connectedIndices = puzzle.pieces[pieceIndex].connectedIndices
+        for index in connectedIndices {
+            if !newList.contains(index) {
+                newList = connectedList(newList, for: index)  // call recursively
+            }
+        }
+        return newList
     }
     
     @objc private func handleLongPress(recognizer: UIPanGestureRecognizer) {
@@ -407,6 +446,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     safeArea.bringSubviewToFront(pressedPieceView)
                 } else {
                     // pressed piece in a group (toggle highlight of whole group)
+                    // pws: if highlighting turned off, might want to ensure pieces aren't off screen (limit to safeArea)
                     let groupedPieces = puzzle.piecesInGroup(pressedPiece.groupNumber)
                     for piece in groupedPieces {
                         let pieceView = pieceViews[piece.id]!
@@ -425,11 +465,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         guard allowsRotation else { return }
         if let tappedPieceView = recognizer.view as? PieceView {
             safeArea.bringSubviewToFront(tappedPieceView)
-            UIView.animate(withDuration: 0.2, animations: {
-                tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
-            })
+//            UIView.animate(withDuration: 0.2, animations: {
+//                tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
+//            })
             // update model
             puzzle.pieces[pieceIndexFor(tappedPieceView).1].rotation = tappedPieceView.rotation
+            let piece = puzzle.pieces[pieceIndexFor(tappedPieceView).1]
+            print("group: \(piece.groupNumber), connections: \(piece.connectedIndices)")
         }
     }
     

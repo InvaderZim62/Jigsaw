@@ -9,6 +9,7 @@ import Foundation
 
 struct Piece {
     var sides: [Side]
+    var connectedIndices = Set<Int>()  // indices of pieces connected to this one
     var id = UUID()
     var rotation = 0.0  // +/- 180 degrees, zero is up, pos is clockwise
     var isAnchored = false  // true if connected to edge, directly or through a series of pieces
