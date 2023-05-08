@@ -116,6 +116,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     func createPuzzle(from image: UIImage) {
+        nextGroupNumber = 1
         let tiles = createTiles(from: image, fitting: autosizedBoardView)  // 2D array of overlapping images
 
         puzzle = Puzzle(rows: tiles.count, cols: tiles[0].count)
@@ -341,6 +342,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     var panningPieceViews = [PieceView]()  // pieceViews grouped with panned piece, if highlighted (just panned pieceView, if not highlighted)
     var initialCenters = [CGPoint]()
+    var targetPieceIndices = [Int]()
 
     @objc private func handlePan(recognizer: UIPanGestureRecognizer) {
         if let pannedPieceView = recognizer.view as? PieceView {
@@ -371,11 +373,12 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 
                 puzzle.pieces[pannedPieceIndex].isAnchored = snapToEdge(pannedPiece, pannedPieceView, pannedPieceIndex)
                 
-                // pws: how to snap group of pieces???
+                // pws: how to snap group of pieces??? (maybe include whole group when snapping panned piece)
                 
-                let targetPieceIndices = snapToPieces(pannedPiece, pannedPieceView)
+                targetPieceIndices = snapToPieces(pannedPiece, pannedPieceView)
                 
-                // store connections
+            case .ended, .cancelled:
+                // store connections with each piece
                 targetPieceIndices.forEach { puzzle.pieces[$0].connectedIndices.insert(pannedPieceIndex) }  // add panned piece to target's connection
                 targetPieceIndices.forEach { puzzle.pieces[pannedPieceIndex].connectedIndices.insert($0) }  // add target pieces to panned piece's connection
                 
@@ -418,7 +421,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                         }
                     }
                 }
-//            case .ended, .cancelled:
             default:
                 break
             }
@@ -467,6 +469,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 
     // rotate piece +90 degrees for single-tap, -90 degrees for double-tap (animated)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
+        pieceViews.values.forEach { $0.isHighlighted = false }
         guard allowsRotation else { return }
         if let tappedPieceView = recognizer.view as? PieceView {
             safeArea.bringSubviewToFront(tappedPieceView)
