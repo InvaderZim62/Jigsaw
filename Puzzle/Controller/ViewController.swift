@@ -18,6 +18,7 @@ import UIKit
 struct PuzzleConst {
     static let innerRatio: CGFloat = 0.60  // bigger ratio => bigger inner size (less distance tab cuts into neighboring piece)
     static let snapDistance = 0.1  // percent innerSize
+    static let connectEpsilon = 1.0  // closeness to be considered connected
     static let examplePuzzleWidth = 350.0  // matches hard-wired size in storyboard
 }
 
@@ -125,7 +126,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         createBoardView(puzzle.cols, puzzle.rows)
         
         randomlyPlacePiecesInSafeArea()
-//        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
+        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
     }
 
     // resize image and split into overlapping squares
@@ -285,15 +286,21 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return isAnchored
     }
 
-    // snap panned piece to nearby mating piece, if any (may not be the correct one)
-    func snapToPiece(_ pannedPiece: Piece, _ pannedPieceView: PieceView) -> Int? {
+    // snap panned piece to nearby mating piece(s), if any (may not be the correct one)
+    // if two targets are in snap distance, only snap to the first, then determine if the other target
+    // is aligned and mating
+    func snapToPieces(_ pannedPiece: Piece, _ pannedPieceView: PieceView) -> [Int] {
+        var snapTargetIndices = [Int]()
+        var isSnapped = false
         let snapDistance = PuzzleConst.snapDistance * innerSize
         let targetPieceViews = pieceViews.filter { $0.value != pannedPieceView }  // all pieces, excluding panned piece
         for targetPieceView in targetPieceViews.values {
             let (targetPiece, targetPieceIndex) = pieceIndexFor(targetPieceView)
             let distanceToTarget = pannedPieceView.center.distance(from: targetPieceView.center)
-            if distanceToTarget < innerSize + snapDistance && distanceToTarget > innerSize - snapDistance {  // may be more than one (will use first)
-                // panned piece is within snapDistance of potential target
+            let isSnapDistance = distanceToTarget < innerSize + snapDistance && distanceToTarget > innerSize - snapDistance
+            let isConnectDistance = abs(distanceToTarget - innerSize) < PuzzleConst.connectEpsilon
+            if (isSnapped && isConnectDistance) || (!isSnapped && isSnapDistance) {
+                // panned piece is within within connectDistance or snapDistance of potential target
                 let bearingToPannedPiece = targetPieceView.center.bearing(to: pannedPieceView.center)
                 let bearingInTargetFrame = (bearingToPannedPiece - targetPieceView.rotation).wrap360
                 let bearingInPannedPieceFrame = (bearingToPannedPiece + 180 - pannedPieceView.rotation).wrap360
@@ -302,20 +309,23 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     // panned piece is aligned horizontally or vertically to potential target
                     // within threshold and indices of sides facing each other obtained
                     if targetPiece.sides[targetSideIndex].mate == pannedPiece.sides[pannedPieceSideIndex] {
-                        // panned piece and target have complementary sides facing each other (snap them together)
-                        pannedPieceView.center = targetPieceView.center + CGPoint(x: innerSize * sin(bearingToPannedPiece.round90.rads),
-                                                                                  y: -innerSize * cos(bearingToPannedPiece.round90.rads))
-                        return targetPieceIndex
+                        // panned piece and target have mating sides facing each other (snap them together, if first one)
+                        if !isSnapped {
+                            pannedPieceView.center = targetPieceView.center + CGPoint(x: innerSize * sin(bearingToPannedPiece.round90.rads),
+                                                                                      y: -innerSize * cos(bearingToPannedPiece.round90.rads))
+                            isSnapped = true
+                        }
+                        snapTargetIndices.append(targetPieceIndex)
                     }
                 }
             }
         }
-        return nil
+        return snapTargetIndices
     }
     
     // MARK: - Gestures
     
-    var selectedPieceViews = [PieceView]()  // pieces that are grouped with panned piece, if highlighted
+    var panningPieceViews = [PieceView]()  // pieceViews grouped with panned piece, if highlighted (just panned pieceView, if not highlighted)
     
     @objc private func handlePan(recognizer: UIPanGestureRecognizer) {
         if let pannedPieceView = recognizer.view as? PieceView {
@@ -324,33 +334,53 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             case .began:
                 safeArea.bringSubviewToFront(pannedPieceView)
                 if pannedPieceView.isHighlighted {
-                    let selectedPieces = puzzle.piecesInGroup(pannedPiece.groupNumber)
-                    selectedPieceViews = selectedPieces.map { pieceViews[$0.id]! }
+                    if pannedPiece.groupNumber == 0 {
+                        panningPieceViews = [pannedPieceView]
+                    } else {
+                        let panningPieces = puzzle.piecesInGroup(pannedPiece.groupNumber)
+                        panningPieceViews = panningPieces.map { pieceViews[$0.id]! }
+                    }
                 } else {
-                    selectedPieceViews = [pannedPieceView]
+                    panningPieceViews = [pannedPieceView]
                 }
             case .changed:
                 // move panned piece, limited to edges of safeArea
                 let translation = recognizer.translation(in: safeArea)
-                selectedPieceViews.forEach { $0.center += translation }
+                panningPieceViews.forEach { $0.center += translation }
                 recognizer.setTranslation(CGPoint.zero, in: safeArea)
 
                 puzzle.pieces[pannedPieceIndex].isAnchored = snapToEdge(pannedPiece, pannedPieceView, pannedPieceIndex)
                 
                 // pws: how to snap group of pieces???
                 
-                if let targetPieceIndex = snapToPiece(pannedPiece, pannedPieceView) {
-                    // connected to targetPiece
-                    let targetPiece = puzzle.pieces[targetPieceIndex]  // copy of piece (don't manipulate)
-                    puzzle.pieces[pannedPieceIndex].isAnchored = puzzle.pieces[pannedPieceIndex].isAnchored || targetPiece.isAnchored
-                    if targetPiece.groupNumber == 0 {
-                        puzzle.pieces[targetPieceIndex].groupNumber = lastGroupNumber + 1
-                        lastGroupNumber += 1
+                let targetPieceIndices = snapToPieces(pannedPiece, pannedPieceView)
+                if targetPieceIndices.count > 0 {
+                    // connected to targetPiece(s)
+                    var newGroupIndices = [pannedPieceIndex]
+                    for targetPieceIndex in targetPieceIndices {
+                        let targetPiece = puzzle.pieces[targetPieceIndex]  // copy of piece (don't manipulate)
+                        if targetPiece.groupNumber == 0 {
+                            // target isn't in a group (add it to new group)
+                            newGroupIndices.append(targetPieceIndex)
+                        } else {
+                            // target is in a group (add its group to new group)
+                            newGroupIndices += puzzle.pieceIndicesInGroup(targetPiece.groupNumber)
+                        }
                     }
-                    puzzle.pieces[pannedPieceIndex].groupNumber = targetPiece.groupNumber  // assume target's groupNumber
+                    
+                    // give entire connected group a new number
+                    newGroupIndices.forEach { puzzle.pieces[$0].groupNumber = lastGroupNumber + 1 }
+                    lastGroupNumber += 1
+                    
+                    // if any in new group is anchored, anchor all
+                    let isAnyAnchored = newGroupIndices.filter { puzzle.pieces[$0].isAnchored }.count > 0
+                    if isAnyAnchored {
+                        newGroupIndices.forEach { puzzle.pieces[$0].isAnchored = true }
+                    }
                 } else {
                     // disconnected from other pieces
                     puzzle.pieces[pannedPieceIndex].groupNumber = 0
+                    // pws: if disconnecting piece splits group into two or more, change group number of new groups
                 }
 //            case .ended, .cancelled:
 //                let singletonPieces = puzzle.resetSingletonGroups()  // in case panning out of a group of two (pws: can't pan out of highlighted group)

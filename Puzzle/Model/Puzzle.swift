@@ -20,19 +20,12 @@ struct Puzzle {
     }
     
     func piecesInGroup(_ groupNumber: Int) -> [Piece] {
-        return pieces.filter( { $0.groupNumber == groupNumber })
+        return pieces.filter { $0.groupNumber == groupNumber }
     }
     
-//    mutating func resetSingletonGroups() -> [Piece] {
-//        var singletonPieces = [Piece]()
-//        for (index, piece) in pieces.enumerated() {
-//            if piecesInGroup(piece.groupNumber).count == 1 {
-//                pieces[index].groupNumber = 0
-//                singletonPieces.append(piece)
-//            }
-//        }
-//        return singletonPieces
-//    }
+    func pieceIndicesInGroup(_ groupNumber: Int) -> [Int] {
+        return pieces.indices.filter { pieces[$0].groupNumber == groupNumber }
+    }
     
     // create randomly fitting pieces in an array of end-to-end rows
     static func createPieces(rows: Int, cols: Int) -> [Piece] {
