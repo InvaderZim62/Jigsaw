@@ -276,7 +276,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         var isAnchored = false
         let snapDistance = PuzzleConst.snapDistance * innerSize
         let edgePositions = pannedPiece.edgePositions
-        let groupedPieces = pannedPieceView.isHighlighted ? puzzle.piecesInGroup(pannedPiece.groupNumber) : [pannedPiece]
+        let groupedPieces = pannedPieceView.isHighlighted && pannedPiece.groupNumber > 0 ? puzzle.piecesInGroup(pannedPiece.groupNumber) : [pannedPiece]
         if edgePositions.count > 0 {
             for edgePosition in edgePositions {
                 let pieceCenterInBoardCoords = safeArea.convert(pannedPieceView.center, to: boardView)
@@ -416,8 +416,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             case .changed:
                 // move panned pieces together
                 let translation = recognizer.translation(in: safeArea)
-                for (index, panningPieceView) in panningPieceViews.enumerated() {
-                    panningPieceView.center = (initialCenters[index] + translation)
+                for (index, pieceView) in panningPieceViews.enumerated() {
+                    pieceView.center = (initialCenters[index] + translation)
                 }
                 puzzle.pieces[pannedPieceIndex].isAnchored = snapToEdge(pannedPiece, pannedPieceView)
                 targetPieceIndices = snapToPieces(pannedPiece, pannedPieceView)  // pannedPiece snapped to these targets (may be empty)
