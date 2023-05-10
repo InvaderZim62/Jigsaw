@@ -21,6 +21,7 @@ struct PuzzleConst {
     static let snapDistance = 0.1  // percent innerSize
     static let connectEpsilon = 1.0  // closeness to be considered connected
     static let examplePuzzleWidth = 350.0  // matches hard-wired size in storyboard
+    static let debugging = false
 }
 
 // UIImagePickerControllerDelegate & UINavigationControllerDelegate required for UIImagePickerController
@@ -403,7 +404,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 } else {
                     // panning a single un-highlighted piece
                     pieceViews.values.forEach { $0.isHighlighted = false }
-                    puzzle.removeConnectionsTo(pannedPieceIndex)
                     panningPieceViews = [pannedPieceView]
                     initialCenters = [pannedPieceView.center]
                 }
@@ -420,8 +420,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             case .ended, .cancelled:
                 if targetPieceIndices.count > 0 {
                     // pannedPiece connected to targetPiece(s)
-                    targetPieceIndices.forEach { puzzle.pieces[$0].connectedIndices.insert(pannedPieceIndex) }  // add panned piece to target's connection
+                    puzzle.removeConnectionsTo(pannedPieceIndex)
                     targetPieceIndices.forEach { puzzle.pieces[pannedPieceIndex].connectedIndices.insert($0) }  // add target pieces to panned piece's connection
+                    targetPieceIndices.forEach { puzzle.pieces[$0].connectedIndices.insert(pannedPieceIndex) }  // add panned piece to target's connection
                     
                     pieceViews.values.forEach { $0.isHighlighted = false }
                     var newGroupIndices = [pannedPieceIndex]
@@ -461,22 +462,16 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         guard allowsRotation else { return }
         if let tappedPieceView = recognizer.view as? PieceView {
             let (tappedPiece, tappedPieceIndex) = pieceIndexFor(tappedPieceView)  // copy of piece (don't manipulate)
-            disconnectPiece(tappedPiece, tappedPieceIndex)
-            safeArea.bringSubviewToFront(tappedPieceView)
-            UIView.animate(withDuration: 0.2, animations: {
-                tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
-            })
-//            // use single tap to debug
-//            if recognizer.numberOfTapsRequired == 1 {
-//                let piece = puzzle.pieces[pieceIndexFor(tappedPieceView).1]  // use for debugging
-//                print("group: \(piece.groupNumber), connections: \(piece.connectedIndices)")
-//            } else {
-//                disconnectPiece(tappedPiece, tappedPieceIndex)
-//                safeArea.bringSubviewToFront(tappedPieceView)
-//                UIView.animate(withDuration: 0.2, animations: {
-//                    tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
-//                })
-//            }
+            if PuzzleConst.debugging && recognizer.numberOfTapsRequired == 1 {
+                print("index: \(tappedPieceIndex), group: \(tappedPiece.groupNumber), isAnchored: \(tappedPiece.isAnchored), connections: \(tappedPiece.connectedIndices)")
+            } else {
+                disconnectPiece(tappedPiece, tappedPieceIndex)  // assume disconnected and un-anchored after rotation (may want to re-evaluate)
+                puzzle.pieces[tappedPieceIndex].isAnchored = false
+                safeArea.bringSubviewToFront(tappedPieceView)
+                UIView.animate(withDuration: 0.2, animations: {
+                    tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
+                })
+            }
             
             // update model
             puzzle.pieces[pieceIndexFor(tappedPieceView).1].rotation = tappedPieceView.rotation
