@@ -10,6 +10,8 @@
 //  To do...
 //  - maybe have taps rotate groups of connected pieces
 //  - alert user that changing settings will re-shuffle puzzle pieces
+//  - check if piece connected to anything after it's rotated
+//  - when a group is panned and snapped, only the pannedPiece's connections are updated (may not be a big problem)
 //
 
 import UIKit
@@ -352,6 +354,22 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return snapTargetIndices
     }
     
+    func disconnectPiece( _ piece: Piece, _ pieceIndex: Int) {
+        puzzle.pieces[pieceIndex].groupNumber = 0
+        puzzle.removeConnectionsTo(pieceIndex)
+        // check if panning of piece split group into two or more separate groups (give each group a new group number)
+        let originalGroupPieceIndices = puzzle.pieceIndicesInGroup(piece.groupNumber)
+        var handledPieceIndices = [Int]()  // keep track of which pieces have already been taken care of
+        for originalGroupPieceIndex in originalGroupPieceIndices {
+            if !handledPieceIndices.contains(originalGroupPieceIndex) {
+                let newGroupIndices = connectedList([], for: originalGroupPieceIndex)
+                newGroupIndices.forEach { puzzle.pieces[$0].groupNumber = (newGroupIndices.count == 1 ? 0 : nextGroupNumber) }
+                nextGroupNumber += 1
+                handledPieceIndices += newGroupIndices
+            }
+        }
+    }
+    
     func connectedList(_ list: [Int], for pieceIndex: Int) -> [Int] {
         var newList = list + [pieceIndex]
         let connectedIndices = puzzle.pieces[pieceIndex].connectedIndices
@@ -429,25 +447,42 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     }
                 } else {
                     // pannedPiece disconnected from or didn't connect to other pieces
-                    puzzle.pieces[pannedPieceIndex].groupNumber = 0
-                    // check if panning of piece split group into two or more separate groups (give each group a new group number)
-                    let originalGroupPieceIndices = puzzle.pieceIndicesInGroup(pannedPiece.groupNumber)
-                    var handledPieceIndices = [Int]()  // keep track of which pieces have already been taken care of
-                    for originalGroupPieceIndex in originalGroupPieceIndices {
-                        if !handledPieceIndices.contains(originalGroupPieceIndex) {
-                            let newGroupIndices = connectedList([], for: originalGroupPieceIndex)
-                            newGroupIndices.forEach { puzzle.pieces[$0].groupNumber = (newGroupIndices.count == 1 ? 0 : nextGroupNumber) }
-                            nextGroupNumber += 1
-                            handledPieceIndices += newGroupIndices
-                        }
-                    }
+                    disconnectPiece(pannedPiece, pannedPieceIndex)
                 }
             default:
                 break
             }
         }
     }
-    
+
+    // rotate piece +90 degrees for single-tap, -90 degrees for double-tap (animated)
+    @objc func handleTap(recognizer: UITapGestureRecognizer) {
+        pieceViews.values.forEach { $0.isHighlighted = false }
+        guard allowsRotation else { return }
+        if let tappedPieceView = recognizer.view as? PieceView {
+            let (tappedPiece, tappedPieceIndex) = pieceIndexFor(tappedPieceView)  // copy of piece (don't manipulate)
+            disconnectPiece(tappedPiece, tappedPieceIndex)
+            safeArea.bringSubviewToFront(tappedPieceView)
+            UIView.animate(withDuration: 0.2, animations: {
+                tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
+            })
+//            // use single tap to debug
+//            if recognizer.numberOfTapsRequired == 1 {
+//                let piece = puzzle.pieces[pieceIndexFor(tappedPieceView).1]  // use for debugging
+//                print("group: \(piece.groupNumber), connections: \(piece.connectedIndices)")
+//            } else {
+//                disconnectPiece(tappedPiece, tappedPieceIndex)
+//                safeArea.bringSubviewToFront(tappedPieceView)
+//                UIView.animate(withDuration: 0.2, animations: {
+//                    tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
+//                })
+//            }
+            
+            // update model
+            puzzle.pieces[pieceIndexFor(tappedPieceView).1].rotation = tappedPieceView.rotation
+        }
+    }
+
     @objc private func handleLongPress(recognizer: UIPanGestureRecognizer) {
         if let pressedPieceView = recognizer.view as? PieceView {
             if !pressedPieceView.isHighlighted {
@@ -474,23 +509,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             default:
                 break
             }
-        }
-    }
-
-    // rotate piece +90 degrees for single-tap, -90 degrees for double-tap (animated)
-    @objc func handleTap(recognizer: UITapGestureRecognizer) {
-        pieceViews.values.forEach { $0.isHighlighted = false }
-        guard allowsRotation else { return }
-        if let tappedPieceView = recognizer.view as? PieceView {
-            safeArea.bringSubviewToFront(tappedPieceView)
-            UIView.animate(withDuration: 0.2, animations: {
-                tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
-            })
-//            let piece = puzzle.pieces[pieceIndexFor(tappedPieceView).1]  // use for debugging
-//            print("group: \(piece.groupNumber), connections: \(piece.connectedIndices)")
-            
-            // update model
-            puzzle.pieces[pieceIndexFor(tappedPieceView).1].rotation = tappedPieceView.rotation
         }
     }
     
