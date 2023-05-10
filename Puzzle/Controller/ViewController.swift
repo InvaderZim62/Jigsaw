@@ -12,7 +12,6 @@
 //  - alert user that changing settings will re-shuffle puzzle pieces
 //  - check if piece connected to anything after it's rotated
 //  - when a group is panned and snapped, only the pannedPiece's connections are updated (may not be a big problem)
-//  - when panning piece creates breaks groups into two (or more), the isAnchored property of each group is not re-computed (may not bb a big problem)
 //
 
 import UIKit
@@ -319,9 +318,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return isAnchored
     }
 
-    // snap panned piece to nearby mating piece(s), if any (may not be the correct one)
+    // snap panned piece to nearby mating piece(s), if any (may not be the correct one);
     // if two targets are in snap distance, only snap to the first, then determine if the other target
-    // is aligned and mating
+    // is aligned and mating; don't change group number
     func snapToPieces(_ pannedPiece: Piece, _ pannedPieceView: PieceView) -> [Int] {
         var snapTargetIndices = [Int]()
         var isSnapped = false
@@ -357,11 +356,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return snapTargetIndices
     }
     
-    func disconnectPiece( _ piece: Piece, _ pieceIndex: Int) {
-        puzzle.pieces[pieceIndex].groupNumber = 0
-        puzzle.removeConnectionsTo(pieceIndex)
-        // check if panning of piece split group into two or more separate groups (give each group a new group number)
-        let originalGroupPieceIndices = puzzle.pieceIndicesInGroup(piece.groupNumber)  // excludes input piece
+    func renumberGroup(_ originalGroupNumber: Int) {
+        // check if original group is split into two or more separate groups (give each group a new group number)
+        let originalGroupPieceIndices = puzzle.pieceIndicesInGroup(originalGroupNumber)
         var handledPieceIndices = [Int]()  // keep track of which pieces have already been taken care of
         for originalGroupPieceIndex in originalGroupPieceIndices {
             if !handledPieceIndices.contains(originalGroupPieceIndex) {
@@ -402,12 +399,18 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                         let panningPieces = puzzle.piecesInGroup(pannedPiece.groupNumber)
                         panningPieceViews = panningPieces.map { pieceViews[$0.id]! }
                         initialCenters = panningPieces.map { pieceViews[$0.id]!.center }
+                        let panningPiecesIndices = puzzle.pieceIndicesInGroup(pannedPiece.groupNumber)
+                        panningPiecesIndices.forEach { puzzle.pieces[$0].isAnchored = false }
                     }
                 } else {
                     // panning a single un-highlighted piece
                     pieceViews.values.forEach { $0.isHighlighted = false }  // un-highlight any unrelated highlighted groups
                     panningPieceViews = [pannedPieceView]
                     initialCenters = [pannedPieceView.center]
+                    
+                    puzzle.pieces[pannedPieceIndex].groupNumber = 0
+                    puzzle.removeConnectionsTo(pannedPieceIndex)
+                    renumberGroup(pannedPiece.groupNumber)  // in case splitting a group by leaving
                 }
                 
             case .changed:
@@ -422,35 +425,29 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             case .ended, .cancelled:
                 if targetPieceIndices.count > 0 {
                     // pannedPiece connected to targetPiece(s)
+                    pieceViews.values.forEach { $0.isHighlighted = false }
+
+                    // update connections between panned piece and all targets
+                    // pws: this doesn't currently update the other grouped piece's connections, if any
                     puzzle.removeConnectionsTo(pannedPieceIndex)
                     targetPieceIndices.forEach { puzzle.pieces[pannedPieceIndex].connectedIndices.insert($0) }  // add target pieces to panned piece's connection
                     targetPieceIndices.forEach { puzzle.pieces[$0].connectedIndices.insert(pannedPieceIndex) }  // add panned piece to target's connection
-                    
-                    pieceViews.values.forEach { $0.isHighlighted = false }
-                    var newGroupIndices = [pannedPieceIndex]
+                                        
+                    // update group numbers (in case pannedPiece joined multiple groups together)
                     for targetPieceIndex in targetPieceIndices {
-                        let targetPiece = puzzle.pieces[targetPieceIndex]  // copy of piece (don't manipulate)
-                        if targetPiece.groupNumber == 0 {
-                            // target isn't in a group (add it to new pannedPiece group)
-                            newGroupIndices.append(targetPieceIndex)  // don't combine with next line, since several pieces may have group number 0
-                        } else {
-                            // target is in a group (add its group to new pannedPiece group)
-                            newGroupIndices += puzzle.pieceIndicesInGroup(targetPiece.groupNumber)
-                        }
+                        let targetPiece = puzzle.pieces[targetPieceIndex]
+                        puzzle.pieces[pannedPieceIndex].groupNumber = targetPiece.groupNumber
+                        renumberGroup(targetPiece.groupNumber)
                     }
                     
-                    // give entire connected group a new group number
-                    newGroupIndices.forEach { puzzle.pieces[$0].groupNumber = nextGroupNumber }
-                    nextGroupNumber += 1
-                    
-                    // if any in new group is anchored, anchor all; if none anchored, un-anchor all
-                    // note: panned piece's isAnchored is determined continuously while panning (in snapToEdge)
+                    // if any piece in new group is anchored, anchor all; if none anchored, un-anchor all
+                    // note: panned piece's .isAnchored is updated continuously while panning (in snapToEdge)
+                    let newGroupNumber = puzzle.pieces[pannedPieceIndex].groupNumber
+                    let newGroupIndices = puzzle.pieceIndicesInGroup(newGroupNumber)
                     let isAnyAnchored = newGroupIndices.filter { puzzle.pieces[$0].isAnchored }.count > 0
                     newGroupIndices.forEach { puzzle.pieces[$0].isAnchored = isAnyAnchored }
-                } else {
-                    // pannedPiece disconnected from or didn't connect to other pieces
-                    disconnectPiece(pannedPiece, pannedPieceIndex)
                 }
+                
             default:
                 break
             }
@@ -466,8 +463,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             if PuzzleConst.debugging && recognizer.numberOfTapsRequired == 1 {
                 print("index: \(tappedPieceIndex), group: \(tappedPiece.groupNumber), isAnchored: \(tappedPiece.isAnchored), connections: \(tappedPiece.connectedIndices)")
             } else {
-                disconnectPiece(tappedPiece, tappedPieceIndex)  // assume disconnected and un-anchored after rotation (may want to re-evaluate)
+                puzzle.pieces[tappedPieceIndex].groupNumber = 0  // assume disconnected and un-anchored after rotation (may want to re-evaluate)
+                puzzle.removeConnectionsTo(tappedPieceIndex)
                 puzzle.pieces[tappedPieceIndex].isAnchored = false
+                renumberGroup(tappedPiece.groupNumber)
                 safeArea.bringSubviewToFront(tappedPieceView)
                 UIView.animate(withDuration: 0.2, animations: {
                     tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
