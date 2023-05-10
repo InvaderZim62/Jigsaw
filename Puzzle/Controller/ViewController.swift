@@ -8,7 +8,6 @@
 //    piece from pieceView:       puzzle.pieces[pieceIndexFor(pieceView).1].rotation = 90.0
 //
 //  To do...
-//  - allow two-finger pan to move groups of connected pieces
 //  - maybe have taps rotate groups of connected pieces
 //  - alert user that changing settings will re-shuffle puzzle pieces
 //
@@ -22,8 +21,9 @@ struct PuzzleConst {
     static let examplePuzzleWidth = 350.0  // matches hard-wired size in storyboard
 }
 
-class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {  // Picker & Nav required for UIImagePickerController
-    
+// UIImagePickerControllerDelegate & UINavigationControllerDelegate required for UIImagePickerController
+// UIGestureRecognizerDelegate required for gestureRecognizer(gestureRecognizer:shouldRecognizeSimultaneouslyWith:)
+class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIGestureRecognizerDelegate {
     var outerSize: CGFloat = 150
     var innerSize: CGFloat = 150 * PuzzleConst.innerRatio
     var image = UIImage(named: "tree")!  // default image
@@ -184,6 +184,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         pieceView.isUserInteractionEnabled = true
 
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
+        pan.delegate = self
         pieceView.addGestureRecognizer(pan)
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
@@ -201,6 +202,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         safeArea.addSubview(pieceView)
 
         return pieceView
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherRecognizer: UIGestureRecognizer) -> Bool {
+        gestureRecognizer is UIPanGestureRecognizer || gestureRecognizer is UILongPressGestureRecognizer
     }
     
     // size boardView to fit completed puzzle size and add constraints to center in safeArea
