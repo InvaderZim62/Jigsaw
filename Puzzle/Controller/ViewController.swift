@@ -92,8 +92,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     pieceView.center = pieceView.center + boardView.frame.origin - pastBoardViewOrigin
                 } else {
                     // if not connected, move to same relative position in safeArea
+                    let edgeInset = innerSize / 4
                     pieceView.center = CGPoint(x: pieceView.center.x * safeArea.bounds.width / pastSafeAreaBounds.width,
                                                y: pieceView.center.y * safeArea.bounds.height / pastSafeAreaBounds.height)
+                    .limitedToView(safeArea, withHorizontalInset: edgeInset, andVerticalInset: edgeInset)
                     safeArea.bringSubviewToFront(pieceView)
                 }
             }
