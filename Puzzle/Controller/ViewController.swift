@@ -34,6 +34,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var boardView = UIView()
     var puzzle = Puzzle()
     var pieceViews = [UUID: PieceView]()  // [Piece.id: PieceView]
+    let picker = UIImagePickerController()
     var pannedPieceMatchingSide: Int?
     var targetPieceMatchingSide: Int?
     var pastSafeAreaBounds = CGRect.zero
@@ -532,7 +533,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     // open picker controller to browse through photo library
     @objc func importPicture() {
-        let picker = UIImagePickerController()
         picker.allowsEditing = false  // matches use of .originalImage in imagePickerController, below
         picker.delegate = self
         present(picker, animated: true)
