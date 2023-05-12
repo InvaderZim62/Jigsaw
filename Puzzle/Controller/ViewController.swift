@@ -137,7 +137,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         createBoardView(puzzle.cols, puzzle.rows)
         
         randomlyPlacePiecesInSafeArea()
-//        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
+        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
     }
 
     // resize image and split into overlapping squares
@@ -348,7 +348,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                         // panned piece and target have mating sides facing each other (snap them together, if first one)
                         if !isSnapped {
                             let deltaSnapPosition = targetPieceView.center + CGPoint(x: innerSize * sin(bearingToPannedPiece.round90.rads), y: -innerSize * cos(bearingToPannedPiece.round90.rads)) - pannedPieceView.center
-                            let groupedPieces = pannedPieceView.isHighlighted ? puzzle.piecesInGroup(pannedPiece.groupNumber) : [pannedPiece]
+                            let groupedPieces = pannedPieceView.isHighlighted && pannedPiece.groupNumber > 0 ? puzzle.piecesInGroup(pannedPiece.groupNumber) : [pannedPiece]
                             groupedPieces.forEach { pieceViews[$0.id]?.center += deltaSnapPosition}
                             isSnapped = true
                         }
