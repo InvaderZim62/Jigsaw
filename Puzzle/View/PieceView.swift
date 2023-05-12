@@ -25,11 +25,14 @@ class PieceView: UIView {
     
     var sides: [Side]
     var image: UIImage
-    var isOutlined: Bool
     var outerSize: CGFloat
+    var isOutlined: Bool {
+        didSet {
+            pictureView.image = image.clipImageTo(pathForSides(sides), isOutlined: isOutlined, isHighlighted: isHighlighted)
+        }
+    }
     var isHighlighted = false {
         didSet {
-            first = true
             pictureView.image = image.clipImageTo(pathForSides(sides), isOutlined: isOutlined, isHighlighted: isHighlighted)
         }
     }
@@ -73,6 +76,7 @@ class PieceView: UIView {
     // previous left off, but the coordinates will be relative to the new orientation (PieceView must be square).
     // Note: black outline is applied in extension UIImage.clipImageTo(path:isOutlined:)
     func pathForSides(_ sides: [Side]) -> UIBezierPath {
+        first = true
         var outline = UIBezierPath()
         for index in 0..<4 {
             outline = addSide(sides[index], to: outline)

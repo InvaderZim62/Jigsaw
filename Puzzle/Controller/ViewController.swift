@@ -137,7 +137,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         createBoardView(puzzle.cols, puzzle.rows)
         
         randomlyPlacePiecesInSafeArea()
-        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
+//        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
     }
 
     // resize image and split into overlapping squares
@@ -485,7 +485,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     @objc private func handleLongPress(recognizer: UIPanGestureRecognizer) {
         if let pressedPieceView = recognizer.view as? PieceView {
             if !pressedPieceView.isHighlighted {
-                // first remove all highlighting, if long-pressed piece is unhighlighted
+                // remove highlighting from all pieces, if intending to highlight long-pressed piece
                 pieceViews.values.forEach { $0.isHighlighted = false }
             }
             switch recognizer.state {
@@ -497,7 +497,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     safeArea.bringSubviewToFront(pressedPieceView)
                 } else {
                     // pressed piece in a group (toggle highlight of whole group)
-                    // pws: if highlighting turned off, might want to ensure pieces aren't off screen (limit to safeArea)
                     let groupedPieces = puzzle.piecesInGroup(pressedPiece.groupNumber)
                     for piece in groupedPieces {
                         let pieceView = pieceViews[piece.id]!
@@ -520,12 +519,23 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             svc.isOutlined = isOutlined
             svc.pieceSizeSML = pieceSizeSML
             svc.updateSettings = { [weak self] in
-                self?.allowsRotation = svc.allowsRotation
-                self?.isOutlined = svc.isOutlined
-                self?.pieceSizeSML = svc.pieceSizeSML
-                self?.outerSize = svc.outerSize
-                self?.innerSize = svc.outerSize * PuzzleConst.innerRatio
-                self?.createPuzzle(from: self!.image)
+                if self?.allowsRotation != svc.allowsRotation {
+                    self?.allowsRotation = svc.allowsRotation
+                    if !svc.allowsRotation {
+                        self?.puzzle.pieces.indices.forEach { self?.puzzle.pieces[$0].rotation = 0 }
+                        self?.pieceViews.values.forEach { $0.transform = .identity }
+                    }
+                }
+                if self?.isOutlined != svc.isOutlined {
+                    self?.isOutlined = svc.isOutlined
+                    self?.pieceViews.values.forEach { $0.isOutlined = svc.isOutlined }
+                }
+                if self?.pieceSizeSML != svc.pieceSizeSML || self?.outerSize != svc.outerSize {
+                    self?.pieceSizeSML = svc.pieceSizeSML
+                    self?.outerSize = svc.outerSize
+                    self?.innerSize = svc.outerSize * PuzzleConst.innerRatio
+                    self?.createPuzzle(from: self!.image)
+                }
                 self?.saveUserDefaults()
             }
             navigationController?.pushViewController(svc, animated: true)
