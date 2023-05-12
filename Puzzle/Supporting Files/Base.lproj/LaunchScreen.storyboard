@@ -20,8 +20,8 @@
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
                     <navigationItem key="navigationItem" title="Jigsaw Puzzle" id="wxT-gp-WwH">
-                        <barButtonItem key="leftBarButtonItem" title="Settings" image="gearshape" catalog="system" id="Svn-O5-pjw"/>
-                        <barButtonItem key="rightBarButtonItem" title="Pick Photo" image="photo" catalog="system" id="t24-yR-vus"/>
+                        <barButtonItem key="leftBarButtonItem" image="gearshape" catalog="system" id="Svn-O5-pjw"/>
+                        <barButtonItem key="rightBarButtonItem" image="photo" catalog="system" id="t24-yR-vus"/>
                     </navigationItem>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>

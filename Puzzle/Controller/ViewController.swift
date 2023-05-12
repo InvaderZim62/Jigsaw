@@ -62,8 +62,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(showSettings))
             navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "photo"), style: .plain, target: self, action: #selector(importPicture))
         } else {
-            navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(showSettings))
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Pick Photo", style: .plain, target: self, action: #selector(importPicture))
+            navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "gearshape"), style: .plain, target: self, action: #selector(showSettings))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "photo"), style: .plain, target: self, action: #selector(importPicture))
         }
         getUserDefaults()
     
