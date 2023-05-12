@@ -212,7 +212,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherRecognizer: UIGestureRecognizer) -> Bool {
-        gestureRecognizer is UIPanGestureRecognizer || gestureRecognizer is UILongPressGestureRecognizer
+        (gestureRecognizer is UIPanGestureRecognizer && otherRecognizer is UILongPressGestureRecognizer) ||
+        (gestureRecognizer is UILongPressGestureRecognizer && otherRecognizer is UIPanGestureRecognizer)
     }
     
     // size boardView to fit completed puzzle size and add constraints to center in safeArea
