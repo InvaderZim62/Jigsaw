@@ -38,6 +38,10 @@ class SettingsViewController: UIViewController {
         createExamplePuzzle(outerSize)
     }
     
+    override func willMove(toParent parent: UIViewController?) {
+        updateSettings?()
+    }
+    
     func createExamplePuzzle(_ outerSize: CGFloat) {
         let innerSize = outerSize * PuzzleConst.innerRatio
         let dimension = Int(boardView.bounds.width / innerSize)
@@ -63,19 +67,16 @@ class SettingsViewController: UIViewController {
     
     @IBAction func rotationSwitchChanged(_ sender: UISwitch) {
         allowsRotation = sender.isOn
-        updateSettings?()
     }
     
     @IBAction func outlineSwitchChanged(_ sender: UISwitch) {
         isOutlined = sender.isOn
         createExamplePuzzle(outerSize)
-        updateSettings?()
     }
     
     @IBAction func segmentChanged(_ sender: UISegmentedControl) {
         pieceSizeSML = PieceSizeSML(rawValue: sender.selectedSegmentIndex)!
         outerSize = boardView.bounds.width / CGFloat(5 - pieceSizeSML.rawValue) / PuzzleConst.innerRatio
         createExamplePuzzle(outerSize)
-        updateSettings?()
     }
 }

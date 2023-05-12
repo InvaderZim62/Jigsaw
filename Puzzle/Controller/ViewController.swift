@@ -523,6 +523,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             svc.pieceSizeSML = pieceSizeSML
             // callback
             svc.updateSettings = { [weak self] in
+                // only take action on settings that change
                 if self?.allowsRotation != svc.allowsRotation {
                     self?.allowsRotation = svc.allowsRotation
                     if !svc.allowsRotation {
