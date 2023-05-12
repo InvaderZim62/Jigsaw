@@ -48,7 +48,12 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     // settings
     var allowsRotation = true
     var isOutlined = true
-    var pieceSizeSML = PieceSizeSML.small
+    var pieceSizeSML = PieceSizeSML.small {
+        didSet {
+            outerSize = PuzzleConst.examplePuzzleWidth / CGFloat(5 - pieceSizeSML.rawValue) / PuzzleConst.innerRatio  // also in SettingsVC viewDidLoad
+            innerSize = outerSize * PuzzleConst.innerRatio
+        }
+    }
 
     @IBOutlet weak var safeArea: UIView!
     @IBOutlet weak var autosizedBoardView: UIView!
@@ -67,8 +72,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
         getUserDefaults()
     
-        outerSize = PuzzleConst.examplePuzzleWidth / CGFloat(5 - pieceSizeSML.rawValue) / PuzzleConst.innerRatio
-        innerSize = outerSize * PuzzleConst.innerRatio
 //        safeArea.backgroundColor = .blue
 //        autosizedBoardView.backgroundColor = .yellow
     }
@@ -518,22 +521,24 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             svc.allowsRotation = allowsRotation
             svc.isOutlined = isOutlined
             svc.pieceSizeSML = pieceSizeSML
+            // callback
             svc.updateSettings = { [weak self] in
                 if self?.allowsRotation != svc.allowsRotation {
                     self?.allowsRotation = svc.allowsRotation
                     if !svc.allowsRotation {
+                        // un-rotate all pieces
                         self?.puzzle.pieces.indices.forEach { self?.puzzle.pieces[$0].rotation = 0 }
                         self?.pieceViews.values.forEach { $0.transform = .identity }
                     }
                 }
                 if self?.isOutlined != svc.isOutlined {
+                    // change outline for all pieces
                     self?.isOutlined = svc.isOutlined
                     self?.pieceViews.values.forEach { $0.isOutlined = svc.isOutlined }
                 }
-                if self?.pieceSizeSML != svc.pieceSizeSML || self?.outerSize != svc.outerSize {
+                if self?.pieceSizeSML != svc.pieceSizeSML {
+                    // change piece size and create new puzzle
                     self?.pieceSizeSML = svc.pieceSizeSML
-                    self?.outerSize = svc.outerSize
-                    self?.innerSize = svc.outerSize * PuzzleConst.innerRatio
                     self?.createPuzzle(from: self!.image)
                 }
                 self?.saveUserDefaults()

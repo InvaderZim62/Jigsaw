@@ -16,13 +16,14 @@ enum PieceSizeSML: Int, Codable {
 
 class SettingsViewController: UIViewController {
     
-    var outerSize: CGFloat!
     var allowsRotation: Bool!
     var isOutlined: Bool!
     var pieceSizeSML: PieceSizeSML!
     var updateSettings: (() -> Void)?  // callback
     var pieceViews = [PieceView]()
-    
+
+    private var outerSize: CGFloat!
+
     @IBOutlet weak var rotationSwitch: UISwitch!
     @IBOutlet weak var outlineSwitch: UISwitch!
     @IBOutlet weak var pieceSizeSegmentedControl: UISegmentedControl!
@@ -33,7 +34,7 @@ class SettingsViewController: UIViewController {
         rotationSwitch.isOn = allowsRotation
         outlineSwitch.isOn = isOutlined
         pieceSizeSegmentedControl.selectedSegmentIndex = pieceSizeSML.rawValue
-        outerSize = boardView.bounds.width / CGFloat(5 - pieceSizeSML.rawValue) / PuzzleConst.innerRatio
+        outerSize = boardView.bounds.width / CGFloat(5 - pieceSizeSML.rawValue) / PuzzleConst.innerRatio  // also in ViewController pieceSizeSML didSet
         createExamplePuzzle(outerSize)
     }
     
