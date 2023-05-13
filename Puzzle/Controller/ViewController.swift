@@ -214,9 +214,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return pieceView
     }
     
+    // allow panning during long press
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherRecognizer: UIGestureRecognizer) -> Bool {
-        (gestureRecognizer is UIPanGestureRecognizer && otherRecognizer is UILongPressGestureRecognizer) ||
-        (gestureRecognizer is UILongPressGestureRecognizer && otherRecognizer is UIPanGestureRecognizer)
+        gestureRecognizer is UIPanGestureRecognizer && otherRecognizer is UILongPressGestureRecognizer
     }
     
     // size boardView to fit completed puzzle size and add constraints to center in safeArea
