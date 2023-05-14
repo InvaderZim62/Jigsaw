@@ -470,16 +470,23 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         if let tappedPieceView = recognizer.view as? PieceView {
             let (tappedPiece, tappedPieceIndex) = pieceIndexFor(tappedPieceView)  // copy of piece (don't manipulate)
             if PuzzleConst.debugging && recognizer.numberOfTapsRequired == 1 {
+                // use single-tap with debugging on to print information about the piece
                 print("index: \(tappedPieceIndex), group: \(tappedPiece.groupNumber), isAnchored: \(tappedPiece.isAnchored), connections: \(tappedPiece.connectedIndices)")
             } else {
-                puzzle.pieces[tappedPieceIndex].groupNumber = 0  // assume disconnected and un-anchored after rotation (may want to re-evaluate)
-                puzzle.removeConnectionsTo(tappedPieceIndex)
-                puzzle.pieces[tappedPieceIndex].isAnchored = false
-                renumberGroup(tappedPiece.groupNumber)
-                safeArea.bringSubviewToFront(tappedPieceView)
-                UIView.animate(withDuration: 0.2, animations: {
-                    tappedPieceView.transform = tappedPieceView.transform.rotated(by: recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads)
-                })
+                let rotation = recognizer.numberOfTapsRequired == 1 ? 90.CGrads : -90.CGrads
+                let groupIndices = tappedPiece.groupNumber == 0 ? [tappedPieceIndex] : puzzle.pieceIndicesInGroup(tappedPiece.groupNumber)
+                for index in groupIndices {
+                    let pieceView = pieceViews[puzzle.pieces[index].id]!
+                    safeArea.bringSubviewToFront(pieceView)
+                    puzzle.pieces[index].isAnchored = false
+                    let relativePosition = pieceView.center - tappedPieceView.center
+                    let newRelative = CGPoint(x: relativePosition.x * cos(rotation) - relativePosition.y * sin(rotation),
+                                              y: relativePosition.x * sin(rotation) + relativePosition.y * cos(rotation))
+                    UIView.animate(withDuration: 0.2, animations: {
+                        pieceView.center = tappedPieceView.center + newRelative
+                        pieceView.transform = pieceView.transform.rotated(by: rotation)
+                    })
+                }
             }
             
             // update model
