@@ -9,7 +9,7 @@
 //
 //  To do...
 //  - maybe have taps rotate groups of connected pieces
-//  - alert user that changing settings will re-shuffle puzzle pieces
+//  - alert user that changing piece size will re-shuffle puzzle pieces
 //  - check if piece connected to anything after it's rotated
 //  - when a group is panned and snapped, only the pannedPiece's connections are updated (may not be a big problem)
 //
@@ -325,9 +325,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return isAnchored
     }
 
-    // snap panned piece to nearby mating piece(s), if any (may not be the correct one);
-    // if two targets are in snap distance, only snap to the first, then determine if the other target
-    // is aligned and mating; don't change group number
+    // snap panned piece to nearby mating piece, if any (regardless of picture matching);
+    // if multiple targets match, only snap to the first, but include all matching targets
+    // in the returned array; don't change group number
     func snapToPieces(_ pannedPiece: Piece, _ pannedPieceView: PieceView) -> [Int] {
         var snapTargetIndices = [Int]()
         var isSnapped = false
