@@ -348,7 +348,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     // panned piece is aligned horizontally or vertically to potential target
                     // within threshold and indices of sides facing each other obtained
                     if targetPiece.sides[targetSideIndex].mate == pannedPiece.sides[pannedPieceSideIndex] {
-                        // panned piece and target have mating sides facing each other (snap them together, if first one)
+                        // panned piece and target have mating sides facing each other (snap them together, if first target)
                         if !isSnapped {
                             let deltaSnapPosition = targetPieceView.center + CGPoint(x: innerSize * sin(bearingToPannedPiece.round90.rads), y: -innerSize * cos(bearingToPannedPiece.round90.rads)) - pannedPieceView.center
                             let groupedPieces = pannedPieceView.isHighlighted && pannedPiece.groupNumber > 0 ? puzzle.piecesInGroup(pannedPiece.groupNumber) : [pannedPiece]
@@ -363,13 +363,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return snapTargetIndices
     }
     
+    // check if original group is split into two or more separate groups; give each group a new group number
     func renumberGroup(_ originalGroupNumber: Int) {
-        // check if original group is split into two or more separate groups (give each group a new group number)
         let originalGroupPieceIndices = puzzle.pieceIndicesInGroup(originalGroupNumber)
         var handledPieceIndices = [Int]()  // keep track of which pieces have already been taken care of
         for originalGroupPieceIndex in originalGroupPieceIndices {
             if !handledPieceIndices.contains(originalGroupPieceIndex) {
-                let newGroupIndices = connectedList([], for: originalGroupPieceIndex)
+                let newGroupIndices = connectedList(for: originalGroupPieceIndex, [])
                 newGroupIndices.forEach { puzzle.pieces[$0].groupNumber = (newGroupIndices.count == 1 ? 0 : nextGroupNumber) }
                 nextGroupNumber += 1
                 handledPieceIndices += newGroupIndices
@@ -377,12 +377,14 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
     }
     
-    func connectedList(_ list: [Int], for pieceIndex: Int) -> [Int] {
+    // return group of pieces connected to input pieceIndex, by calling recursively;
+    // each time add input piece to list, then call again for each of its connected pieces
+    func connectedList(for pieceIndex: Int, _ list: [Int]) -> [Int] {
         var newList = list + [pieceIndex]
         let connectedIndices = puzzle.pieces[pieceIndex].connectedIndices
         for index in connectedIndices {
             if !newList.contains(index) {
-                newList = connectedList(newList, for: index)  // call recursively
+                newList = connectedList(for: index, newList)  // call recursively
             }
         }
         return newList
