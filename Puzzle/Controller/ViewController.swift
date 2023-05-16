@@ -434,10 +434,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 targetPieceIndices = snapToPieces(pannedPiece, pannedPieceView)  // pannedPiece fits these targets, and snapped to one (may be empty)
                 
             case .ended, .cancelled:
+                pieceViews.values.forEach { $0.isHighlighted = false }
                 if targetPieceIndices.count > 0 {
                     // pannedPiece connected to targetPiece(s)
-                    pieceViews.values.forEach { $0.isHighlighted = false }
-
                     // update connections between panned piece and all targets
                     // pws: this doesn't currently update the other grouped piece's connections, if any
                     targetPieceIndices.forEach { puzzle.pieces[pannedPieceIndex].connectedIndices.insert($0) }  // add target pieces to panned piece's connection
