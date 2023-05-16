@@ -327,26 +327,27 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 
     // snap panned piece to nearby mating piece, if any (regardless of picture matching);
     // if multiple targets match, only snap to the first, but include all matching targets
-    // in the returned array; don't change group number
+    // in the returned array; don't change group number, here
     func snapToPieces(_ pannedPiece: Piece, _ pannedPieceView: PieceView) -> [Int] {
         var snapTargetIndices = [Int]()
         var isSnapped = false
         let snapDistance = PuzzleConst.snapDistance * innerSize
-        let targetPieceViews = pieceViews.filter { $0.value != pannedPieceView }  // all pieces, excluding panned piece
-        for targetPieceView in targetPieceViews.values {
+        let piecesNotInGroup = pannedPiece.groupNumber == 0 ? puzzle.pieces.filter { $0 != pannedPiece } : puzzle.piecesNotInGroup(pannedPiece.groupNumber)
+        let targetPieceViews = piecesNotInGroup.map { pieceViews[$0.id]! }
+        for targetPieceView in targetPieceViews {
             let (targetPiece, targetPieceIndex) = pieceAndIndexFor(targetPieceView)
             let distanceToTarget = pannedPieceView.center.distance(from: targetPieceView.center)
             let isSnapDistance = distanceToTarget < innerSize + snapDistance && distanceToTarget > innerSize - snapDistance
             let isConnectDistance = abs(distanceToTarget - innerSize) < PuzzleConst.connectEpsilon
             if (isSnapped && isConnectDistance) || (!isSnapped && isSnapDistance) {
-                // panned piece is within within connectDistance or snapDistance of potential target
+                // panned piece is within connectDistance or snapDistance of potential target
                 let bearingToPannedPiece = targetPieceView.center.bearing(to: pannedPieceView.center)
                 let bearingInTargetFrame = (bearingToPannedPiece - targetPieceView.rotation).wrap360
                 let bearingInPannedPieceFrame = (bearingToPannedPiece + 180 - pannedPieceView.rotation).wrap360
                 if let targetSideIndex = sideIndexFor(bearing: bearingInTargetFrame),
                    let pannedPieceSideIndex = sideIndexFor(bearing: bearingInPannedPieceFrame) {
                     // panned piece is aligned horizontally or vertically to potential target
-                    // within threshold and indices of sides facing each other obtained
+                    // within threshold; indices of sides facing each other obtained
                     if targetPiece.sides[targetSideIndex].mate == pannedPiece.sides[pannedPieceSideIndex] {
                         // panned piece and target have mating sides facing each other (snap them together, if first target)
                         if !isSnapped {
@@ -419,17 +420,18 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     
                     puzzle.pieces[pannedPieceIndex].groupNumber = 0
                     puzzle.removeConnectionsTo(pannedPieceIndex)
-                    renumberGroup(pannedPiece.groupNumber)  // in case splitting a group by leaving
+                    // update group numbers (in case group was split up by pannedPiece leaving)
+                    renumberGroup(pannedPiece.groupNumber)
                 }
                 
             case .changed:
-                // move panned pieces together
+                // move and snap the panned piece; move all grouped pieces with it
                 let translation = recognizer.translation(in: safeArea)
                 for (index, pieceView) in panningPieceViews.enumerated() {
                     pieceView.center = (initialCenters[index] + translation)
                 }
-                puzzle.pieces[pannedPieceIndex].isAnchored = snapToEdge(pannedPiece, pannedPieceView)
-                targetPieceIndices = snapToPieces(pannedPiece, pannedPieceView)  // pannedPiece snapped to these targets (may be empty)
+                puzzle.pieces[pannedPieceIndex].isAnchored = snapToEdge(pannedPiece, pannedPieceView)  // true if successfully snapped to edge
+                targetPieceIndices = snapToPieces(pannedPiece, pannedPieceView)  // pannedPiece fits these targets, and snapped to one (may be empty)
                 
             case .ended, .cancelled:
                 if targetPieceIndices.count > 0 {
@@ -438,7 +440,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 
                     // update connections between panned piece and all targets
                     // pws: this doesn't currently update the other grouped piece's connections, if any
-                    puzzle.removeConnectionsTo(pannedPieceIndex)
                     targetPieceIndices.forEach { puzzle.pieces[pannedPieceIndex].connectedIndices.insert($0) }  // add target pieces to panned piece's connection
                     targetPieceIndices.forEach { puzzle.pieces[$0].connectedIndices.insert(pannedPieceIndex) }  // add panned piece to target's connection
                                         

@@ -24,6 +24,10 @@ struct Puzzle {
         return pieces.filter { $0.groupNumber == groupNumber }
     }
     
+    func piecesNotInGroup(_ groupNumber: Int) -> [Piece] {
+        return pieces.filter { $0.groupNumber != groupNumber }
+    }
+
     // return all piece indices for a given group number
     func pieceIndicesInGroup(_ groupNumber: Int) -> [Int] {
         return pieces.indices.filter { pieces[$0].groupNumber == groupNumber }
