@@ -4,10 +4,11 @@
 //
 //  Created by Phil Stern on 4/21/23.
 //
-//  PieceView is the inner portion of the puzzle piece.  It includes a larger subview for drawing the
-//  complete piece.  It was done this way, so a pan gesture can be attached to the inner portion of
-//  the piece, yet still move the whole picture.  If a pan gesture is attached to the complete puzzle
-//  piece, the pan gestures would overlap, since the puzzle pieces overlap when connected.
+//  PieceView is the inner portion of the puzzle piece.  It includes a larger subview (imageView)
+//  for drawing the complete piece.  It was done this way, so a pan gesture can be attached to the
+//  inner portion of the piece, yet still move the whole picture.  If a pan gesture is attached to
+//  the complete puzzle piece, the pan gestures would overlap, since the puzzle pieces overlap when
+//  connected.
 //
 //  Note: PieceView must be square, for the drawing and clipping of the image to work.
 //
@@ -26,14 +27,15 @@ class PieceView: UIView {
     var sides: [Side]
     var image: UIImage
     var outerSize: CGFloat
-    var isOutlined: Bool {
+    var isOutlined: Bool {  // black outline
         didSet {
-            pictureView.image = image.clipImageTo(pathForSides(sides), isOutlined: isOutlined, isHighlighted: isHighlighted)
+            imageView.image = image.clipImageTo(pathForSides(sides), isOutlined: isOutlined, isHighlighted: isHighlighted)
         }
     }
-    var isHighlighted = false {
+    
+    var isHighlighted = false {  // green outline
         didSet {
-            pictureView.image = image.clipImageTo(pathForSides(sides), isOutlined: isOutlined, isHighlighted: isHighlighted)
+            imageView.image = image.clipImageTo(pathForSides(sides), isOutlined: isOutlined, isHighlighted: isHighlighted)
         }
     }
 
@@ -42,7 +44,7 @@ class PieceView: UIView {
     }
     
     private var first = true
-    private var pictureView = UIImageView()  // larger view to hold image
+    private var imageView = UIImageView()  // larger view to hold image
     
     init(sides: [Side], image: UIImage, innerSize: CGFloat, isOutlined: Bool) {
         self.sides = sides
@@ -50,10 +52,10 @@ class PieceView: UIView {
         self.isOutlined = isOutlined
         outerSize = innerSize / PuzzleConst.innerRatio
         super.init(frame: CGRect.zero)  // compiler complains if this isn't here
-        pictureView.frame = CGRect(x: 0, y: 0, width: outerSize, height: outerSize)
-        pictureView.center = CGPoint(x: innerSize / 2, y: innerSize / 2)
-        pictureView.image = image.clipImageTo(pathForSides(sides), isOutlined: isOutlined, isHighlighted: false)
-        addSubview(pictureView)
+        imageView.frame = CGRect(x: 0, y: 0, width: outerSize, height: outerSize)
+        imageView.center = CGPoint(x: innerSize / 2, y: innerSize / 2)
+        imageView.image = image.clipImageTo(pathForSides(sides), isOutlined: isOutlined, isHighlighted: false)
+        addSubview(imageView)
     }
     
     required init?(coder: NSCoder) {
@@ -61,11 +63,11 @@ class PieceView: UIView {
     }
 
     // lazy, since they use bounds (ok to use during init, since not using constraints)
-    private lazy var frameCenter = CGPoint(x: pictureView.frame.width / 2.0, y: pictureView.frame.height / 2.0)
-    private lazy var tabRadius = PieceConst.tabRadiusFactor * pictureView.bounds.width
-    private lazy var neckWidth = PieceConst.neckWidthFactor * pictureView.bounds.width
-    private lazy var cpLength = PieceConst.controlPointLengthFactor * pictureView.bounds.width
-    private lazy var lineWidth = PieceConst.lineWidthFactor * pictureView.bounds.width
+    private lazy var frameCenter = CGPoint(x: imageView.frame.width / 2.0, y: imageView.frame.height / 2.0)
+    private lazy var tabRadius = PieceConst.tabRadiusFactor * imageView.bounds.width
+    private lazy var neckWidth = PieceConst.neckWidthFactor * imageView.bounds.width
+    private lazy var cpLength = PieceConst.controlPointLengthFactor * imageView.bounds.width
+    private lazy var lineWidth = PieceConst.lineWidthFactor * imageView.bounds.width
     
     // rotate about point by translating (from 0,0) to point, rotating, and translating back
     private func transformToRotate(angle: Double, about point: CGPoint) -> CGAffineTransform {
@@ -74,22 +76,22 @@ class PieceView: UIView {
 
     // create path for one edge at a time, rotating the path 90 deg between each; path will pick up where the
     // previous left off, but the coordinates will be relative to the new orientation (PieceView must be square).
-    // Note: black outline is applied in extension UIImage.clipImageTo(path:isOutlined:)
+    // Note: outline is applied in extension UIImage.clipImageTo(path:isOutlined:)
     func pathForSides(_ sides: [Side]) -> UIBezierPath {
         first = true
-        var outline = UIBezierPath()
+        var path = UIBezierPath()
         for index in 0..<4 {
-            outline = addSide(sides[index], to: outline)
-            outline.apply(transformToRotate(angle: -90.rads, about: frameCenter))
+            path = addSide(sides[index], to: path)
+            path.apply(transformToRotate(angle: -90.rads, about: frameCenter))
         }
-        outline.close()
-        return outline
+        path.close()
+        return path
     }
 
     private func addSide(_ side: Side, to path: UIBezierPath) -> UIBezierPath {
         let inset = outerSize * (1 - PuzzleConst.innerRatio) / 2
         let leftShoulder = CGPoint(x: inset, y: inset)
-        let rightShoulder = CGPoint(x: pictureView.bounds.width - inset, y: inset)
+        let rightShoulder = CGPoint(x: imageView.bounds.width - inset, y: inset)
 
         if first {
             first = false

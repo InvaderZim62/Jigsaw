@@ -19,20 +19,24 @@ struct Puzzle {
         pieces = Puzzle.createPieces(rows: rows, cols: cols)
     }
     
+    // return all pieces for a given group number
     func piecesInGroup(_ groupNumber: Int) -> [Piece] {
         return pieces.filter { $0.groupNumber == groupNumber }
     }
     
+    // return all piece indices for a given group number
     func pieceIndicesInGroup(_ groupNumber: Int) -> [Int] {
         return pieces.indices.filter { pieces[$0].groupNumber == groupNumber }
     }
     
+    // remove all connections from piece (index) and remove piece from all other pieces' connections
     mutating func removeConnectionsTo(_ index: Int) {
         pieces[index].connectedIndices = []
         pieces.indices.forEach { pieces[$0].connectedIndices.remove(index) }
     }
     
     // create randomly fitting pieces in an array of end-to-end rows
+    // note: images are applied in PieceView
     static func createPieces(rows: Int, cols: Int) -> [Piece] {
         var pieces = [Piece]()
         

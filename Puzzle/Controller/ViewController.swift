@@ -140,7 +140,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         createBoardView(puzzle.cols, puzzle.rows)
         
         randomlyPlacePiecesInSafeArea()
-        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
+//        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
     }
 
     // resize image and split into overlapping squares
