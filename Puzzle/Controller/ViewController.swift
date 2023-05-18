@@ -71,7 +71,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "photo"), style: .plain, target: self, action: #selector(importPicture))
         }
         getUserDefaults()
-    
+
+        let singleTap = UITapGestureRecognizer(target: self, action: #selector(safeAreaTapped))
+        singleTap.numberOfTapsRequired = 1
+        safeArea.addGestureRecognizer(singleTap)
+
 //        safeArea.backgroundColor = .blue
 //        autosizedBoardView.backgroundColor = .yellow
     }
@@ -461,6 +465,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 break
             }
         }
+    }
+    
+    // turn off any highlighting if tapping on safeArea (not on a piece)
+    @objc func safeAreaTapped(recognizer: UITapGestureRecognizer) {
+        pieceViews.values.forEach { $0.isHighlighted = false }
     }
 
     // rotate piece +90 degrees for single-tap, -90 degrees for double-tap (animated)
