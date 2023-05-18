@@ -61,28 +61,6 @@
                         <rect key="frame" x="0.0" y="0.0" width="430" height="932"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <stackView opaque="NO" contentMode="scaleToFill" spacing="26" translatesAutoresizingMaskIntoConstraints="NO" id="JmO-gE-5MS">
-                                <rect key="frame" x="50" y="330" width="330" height="31"/>
-                                <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Piece Size:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wGp-sf-jbM">
-                                        <rect key="frame" x="0.0" y="0.0" width="98" height="31"/>
-                                        <fontDescription key="fontDescription" name="ChalkboardSE-Regular" family="Chalkboard SE" pointSize="20"/>
-                                        <nil key="textColor"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                    <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="uFt-wh-R3m">
-                                        <rect key="frame" x="124" y="0.0" width="206" height="32"/>
-                                        <segments>
-                                            <segment title="Small"/>
-                                            <segment title="Medium"/>
-                                            <segment title="Large"/>
-                                        </segments>
-                                        <connections>
-                                            <action selector="segmentChanged:" destination="gCO-oJ-sNv" eventType="valueChanged" id="xlq-SA-azp"/>
-                                        </connections>
-                                    </segmentedControl>
-                                </subviews>
-                            </stackView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rJ4-lH-ia1">
                                 <rect key="frame" x="40" y="401" width="350" height="350"/>
                                 <color key="backgroundColor" systemColor="systemGray6Color"/>
@@ -91,38 +69,65 @@
                                     <constraint firstAttribute="width" constant="350" id="mRj-9N-MXT"/>
                                 </constraints>
                             </view>
-                            <stackView opaque="NO" contentMode="scaleToFill" spacing="145" translatesAutoresizingMaskIntoConstraints="NO" id="qv4-rE-FBn">
-                                <rect key="frame" x="50" y="208" width="329" height="31"/>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="JBM-vW-qrw">
+                                <rect key="frame" x="50" y="208" width="330" height="153"/>
                                 <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Allow Rotation:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ugX-gj-bNs">
-                                        <rect key="frame" x="0.0" y="0.0" width="135" height="31"/>
-                                        <fontDescription key="fontDescription" name="ChalkboardSE-Regular" family="Chalkboard SE" pointSize="20"/>
-                                        <nil key="textColor"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                    <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="g8r-Gl-vMe">
-                                        <rect key="frame" x="280" y="0.0" width="51" height="31"/>
-                                        <connections>
-                                            <action selector="rotationSwitchChanged:" destination="gCO-oJ-sNv" eventType="valueChanged" id="5am-ms-0hE"/>
-                                        </connections>
-                                    </switch>
-                                </subviews>
-                            </stackView>
-                            <stackView opaque="NO" contentMode="scaleToFill" spacing="147" translatesAutoresizingMaskIntoConstraints="NO" id="e2p-Se-clo">
-                                <rect key="frame" x="50" y="269" width="329.33333333333331" height="31"/>
-                                <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Outline Pieces:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pSy-at-5Ym">
-                                        <rect key="frame" x="0.0" y="0.0" width="133.33333333333334" height="31"/>
-                                        <fontDescription key="fontDescription" name="ChalkboardSE-Regular" family="Chalkboard SE" pointSize="20"/>
-                                        <nil key="textColor"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                    <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zer-Ba-RPk">
-                                        <rect key="frame" x="280.33333333333331" y="0.0" width="51" height="31"/>
-                                        <connections>
-                                            <action selector="outlineSwitchChanged:" destination="gCO-oJ-sNv" eventType="valueChanged" id="weh-pL-DMw"/>
-                                        </connections>
-                                    </switch>
+                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="145" translatesAutoresizingMaskIntoConstraints="NO" id="qv4-rE-FBn">
+                                        <rect key="frame" x="0.0" y="0.0" width="330" height="31"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Allow Rotation:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ugX-gj-bNs">
+                                                <rect key="frame" x="0.0" y="0.0" width="136" height="31"/>
+                                                <fontDescription key="fontDescription" name="ChalkboardSE-Regular" family="Chalkboard SE" pointSize="20"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="g8r-Gl-vMe">
+                                                <rect key="frame" x="281" y="0.0" width="51" height="31"/>
+                                                <connections>
+                                                    <action selector="rotationSwitchChanged:" destination="gCO-oJ-sNv" eventType="valueChanged" id="5am-ms-0hE"/>
+                                                </connections>
+                                            </switch>
+                                        </subviews>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="147" translatesAutoresizingMaskIntoConstraints="NO" id="e2p-Se-clo">
+                                        <rect key="frame" x="0.0" y="61" width="330" height="31"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Outline Pieces:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pSy-at-5Ym">
+                                                <rect key="frame" x="0.0" y="0.0" width="134" height="31"/>
+                                                <fontDescription key="fontDescription" name="ChalkboardSE-Regular" family="Chalkboard SE" pointSize="20"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zer-Ba-RPk">
+                                                <rect key="frame" x="281" y="0.0" width="51" height="31"/>
+                                                <connections>
+                                                    <action selector="outlineSwitchChanged:" destination="gCO-oJ-sNv" eventType="valueChanged" id="weh-pL-DMw"/>
+                                                </connections>
+                                            </switch>
+                                        </subviews>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="26" translatesAutoresizingMaskIntoConstraints="NO" id="JmO-gE-5MS">
+                                        <rect key="frame" x="0.0" y="122" width="330" height="31"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Piece Size:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wGp-sf-jbM">
+                                                <rect key="frame" x="0.0" y="0.0" width="98" height="31"/>
+                                                <fontDescription key="fontDescription" name="ChalkboardSE-Regular" family="Chalkboard SE" pointSize="20"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="uFt-wh-R3m">
+                                                <rect key="frame" x="124" y="0.0" width="206" height="32"/>
+                                                <segments>
+                                                    <segment title="Small"/>
+                                                    <segment title="Medium"/>
+                                                    <segment title="Large"/>
+                                                </segments>
+                                                <connections>
+                                                    <action selector="segmentChanged:" destination="gCO-oJ-sNv" eventType="valueChanged" id="xlq-SA-azp"/>
+                                                </connections>
+                                            </segmentedControl>
+                                        </subviews>
+                                    </stackView>
                                 </subviews>
                             </stackView>
                         </subviews>
@@ -130,13 +135,9 @@
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="rJ4-lH-ia1" firstAttribute="centerY" secondItem="lFN-RV-RLz" secondAttribute="centerY" constant="110" id="0QD-tb-5Da"/>
-                            <constraint firstItem="e2p-Se-clo" firstAttribute="top" secondItem="qv4-rE-FBn" secondAttribute="bottom" constant="30" id="17u-oV-ily"/>
-                            <constraint firstItem="rJ4-lH-ia1" firstAttribute="top" secondItem="JmO-gE-5MS" secondAttribute="bottom" constant="40" id="BNi-Hq-f84"/>
-                            <constraint firstItem="JmO-gE-5MS" firstAttribute="top" secondItem="e2p-Se-clo" secondAttribute="bottom" constant="30" id="GL0-Si-iUU"/>
                             <constraint firstItem="rJ4-lH-ia1" firstAttribute="centerX" secondItem="lFN-RV-RLz" secondAttribute="centerX" id="HPD-KG-Nn3"/>
-                            <constraint firstItem="JmO-gE-5MS" firstAttribute="centerX" secondItem="lFN-RV-RLz" secondAttribute="centerX" id="NR6-FC-DsF"/>
-                            <constraint firstItem="qv4-rE-FBn" firstAttribute="leading" secondItem="JmO-gE-5MS" secondAttribute="leading" id="iF9-JW-5Ia"/>
-                            <constraint firstItem="e2p-Se-clo" firstAttribute="leading" secondItem="JmO-gE-5MS" secondAttribute="leading" id="orN-Id-uNJ"/>
+                            <constraint firstItem="rJ4-lH-ia1" firstAttribute="top" secondItem="JBM-vW-qrw" secondAttribute="bottom" constant="40" id="WX8-FE-Tml"/>
+                            <constraint firstItem="JBM-vW-qrw" firstAttribute="centerX" secondItem="lFN-RV-RLz" secondAttribute="centerX" id="dGK-Ad-OXR"/>
                         </constraints>
                     </view>
                     <connections>
