@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="21701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Ev8-1S-HyQ">
-    <device id="retina6_72" orientation="portrait" appearance="light"/>
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21678"/>
@@ -14,14 +14,14 @@
             <objects>
                 <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="Puzzle" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="430" height="932"/>
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uB1-IQ-bcT">
-                                <rect key="frame" x="0.0" y="103" width="430" height="795"/>
+                                <rect key="frame" x="0.0" y="92" width="414" height="770"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DEd-1b-7BR">
-                                        <rect key="frame" x="21.666666666666657" y="79.666666666666629" width="387" height="636"/>
+                                        <rect key="frame" x="20.5" y="77" width="373" height="616"/>
                                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                     </view>
                                 </subviews>
@@ -58,56 +58,56 @@
             <objects>
                 <viewController storyboardIdentifier="Settings" id="gCO-oJ-sNv" customClass="SettingsViewController" customModule="Puzzle" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="lFN-RV-RLz">
-                        <rect key="frame" x="0.0" y="0.0" width="430" height="932"/>
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rJ4-lH-ia1">
-                                <rect key="frame" x="40" y="391" width="350" height="350"/>
+                                <rect key="frame" x="47" y="388" width="320" height="320"/>
                                 <color key="backgroundColor" systemColor="systemGray6Color"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="rJ4-lH-ia1" secondAttribute="height" multiplier="1:1" id="OcP-qj-UXG"/>
-                                    <constraint firstAttribute="width" constant="350" id="mRj-9N-MXT"/>
+                                    <constraint firstAttribute="width" constant="320" id="mRj-9N-MXT"/>
                                 </constraints>
                             </view>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="JBM-vW-qrw">
-                                <rect key="frame" x="50" y="188" width="330" height="153"/>
+                                <rect key="frame" x="50" y="185" width="314" height="153"/>
                                 <subviews>
-                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="145" translatesAutoresizingMaskIntoConstraints="NO" id="qv4-rE-FBn">
-                                        <rect key="frame" x="0.0" y="0.0" width="330" height="31"/>
+                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="130" translatesAutoresizingMaskIntoConstraints="NO" id="qv4-rE-FBn">
+                                        <rect key="frame" x="0.0" y="0.0" width="314" height="31"/>
                                         <subviews>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Allow Rotation:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ugX-gj-bNs">
-                                                <rect key="frame" x="0.0" y="0.0" width="136" height="31"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="135" height="31"/>
                                                 <fontDescription key="fontDescription" name="ChalkboardSE-Regular" family="Chalkboard SE" pointSize="20"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="g8r-Gl-vMe">
-                                                <rect key="frame" x="281" y="0.0" width="51" height="31"/>
+                                                <rect key="frame" x="265" y="0.0" width="51" height="31"/>
                                                 <connections>
                                                     <action selector="rotationSwitchChanged:" destination="gCO-oJ-sNv" eventType="valueChanged" id="5am-ms-0hE"/>
                                                 </connections>
                                             </switch>
                                         </subviews>
                                     </stackView>
-                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="147" translatesAutoresizingMaskIntoConstraints="NO" id="e2p-Se-clo">
-                                        <rect key="frame" x="0.0" y="61" width="330" height="31"/>
+                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="130" translatesAutoresizingMaskIntoConstraints="NO" id="e2p-Se-clo">
+                                        <rect key="frame" x="0.0" y="61" width="314" height="31"/>
                                         <subviews>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Outline Pieces:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pSy-at-5Ym">
-                                                <rect key="frame" x="0.0" y="0.0" width="134" height="31"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="135" height="31"/>
                                                 <fontDescription key="fontDescription" name="ChalkboardSE-Regular" family="Chalkboard SE" pointSize="20"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zer-Ba-RPk">
-                                                <rect key="frame" x="281" y="0.0" width="51" height="31"/>
+                                                <rect key="frame" x="265" y="0.0" width="51" height="31"/>
                                                 <connections>
                                                     <action selector="outlineSwitchChanged:" destination="gCO-oJ-sNv" eventType="valueChanged" id="weh-pL-DMw"/>
                                                 </connections>
                                             </switch>
                                         </subviews>
                                     </stackView>
-                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="26" translatesAutoresizingMaskIntoConstraints="NO" id="JmO-gE-5MS">
-                                        <rect key="frame" x="0.0" y="122" width="330" height="31"/>
+                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="JmO-gE-5MS">
+                                        <rect key="frame" x="0.0" y="122" width="314" height="31"/>
                                         <subviews>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Piece Size:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wGp-sf-jbM">
                                                 <rect key="frame" x="0.0" y="0.0" width="98" height="31"/>
@@ -116,7 +116,7 @@
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="uFt-wh-R3m">
-                                                <rect key="frame" x="124" y="0.0" width="206" height="32"/>
+                                                <rect key="frame" x="108" y="0.0" width="206" height="32"/>
                                                 <segments>
                                                     <segment title="Small"/>
                                                     <segment title="Medium"/>
@@ -182,7 +182,7 @@
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="Ev8-1S-HyQ" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="NaI-W7-XhU">
-                        <rect key="frame" x="0.0" y="59" width="430" height="44"/>
+                        <rect key="frame" x="0.0" y="48" width="414" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
