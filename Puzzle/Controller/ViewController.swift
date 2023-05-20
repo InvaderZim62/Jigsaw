@@ -4,11 +4,11 @@
 //
 //  Created by Phil Stern on 4/21/23.
 //
-//  Useful equations...
-//    piece from pieceView:       pieceViewFor(piece)
+//  Useful code...
+//    let pieceView = pieceViewFor(piece)
+//    let (piece, index) = pieceAndIndexFor(pieceView)
 //
 //  To do...
-//  - maybe have taps rotate groups of connected pieces
 //  - alert user that changing piece size will re-shuffle puzzle pieces
 //  - check if piece connected to anything after it's rotated
 //  - when a group is panned and snapped, only the pannedPiece's connections are updated (may not be a big problem)
@@ -76,6 +76,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
         getUserDefaults()
 
+        // disable highlighting for tap in safe area (not on piece)
         let singleTap = UITapGestureRecognizer(target: self, action: #selector(safeAreaTapped))
         singleTap.numberOfTapsRequired = 1
         safeArea.addGestureRecognizer(singleTap)
