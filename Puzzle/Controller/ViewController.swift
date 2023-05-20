@@ -60,6 +60,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     // MARK: - Start of code
     
+    override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge {
+        return .all
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Jigsaw Puzzle"
