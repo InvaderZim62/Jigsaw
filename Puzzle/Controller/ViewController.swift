@@ -55,6 +55,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
     }
 
+    // outlets
     @IBOutlet weak var safeArea: UIView!
     @IBOutlet weak var autosizedBoardView: UIView!
     
@@ -149,7 +150,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         createBoardView(puzzle.cols, puzzle.rows)
         
         randomlyPlacePiecesInSafeArea()
-        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
+//        solvePuzzle()
     }
 
     // resize image and split into overlapping squares
@@ -256,11 +257,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
     }
     
-    func solvePuzzle(rows: Int, cols: Int) {
+    func solvePuzzle() {
         UIView.animate(withDuration: 0.6, animations: {
-            for row in 0..<rows {
-                for col in 0..<cols {
-                    let index = col + row * cols
+            for row in 0..<self.puzzle.rows {
+                for col in 0..<self.puzzle.cols {
+                    let index = col + row * self.puzzle.cols
                     let piece = self.puzzle.pieces[index]
                     let pieceView = self.pieceViewFor(piece)
                     pieceView.center = self.boardView.frame.origin + CGPoint(x: self.innerSize * (0.5 + CGFloat(col)),
@@ -272,14 +273,14 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     if col > 0 {
                         self.puzzle.pieces[index].connectedIndices.insert(index - 1)
                     }
-                    if col < cols - 1 {
+                    if col < self.puzzle.cols - 1 {
                         self.puzzle.pieces[index].connectedIndices.insert(index + 1)
                     }
                     if row > 0 {
-                        self.puzzle.pieces[index].connectedIndices.insert(index - cols)
+                        self.puzzle.pieces[index].connectedIndices.insert(index - self.puzzle.cols)
                     }
-                    if row < rows - 1 {
-                        self.puzzle.pieces[index].connectedIndices.insert(index + cols)
+                    if row < self.puzzle.rows - 1 {
+                        self.puzzle.pieces[index].connectedIndices.insert(index + self.puzzle.cols)
                     }
                 }
             }
@@ -539,6 +540,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     // MARK: - Button Bar Actions
     
     @objc func showSettings() {
+        // programmatically push SettingsViewController
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let svc = storyboard.instantiateViewController(withIdentifier: "Settings") as? SettingsViewController {
             svc.allowsRotation = allowsRotation
@@ -566,6 +568,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     self?.createPuzzle(from: self!.image)
                 }
                 self?.saveUserDefaults()
+                if svc.isAutoSave { self?.solvePuzzle() }
             }
             navigationController?.pushViewController(svc, animated: true)
         }

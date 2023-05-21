@@ -18,6 +18,7 @@ class SettingsViewController: UIViewController {
     var pieceSizeSML: PieceSizeSML!
     var updateSettings: (() -> Void)?  // callback
     var pieceViews = [PieceView]()
+    var isAutoSave = false
 
     private var outerSize: CGFloat!
 
@@ -91,5 +92,11 @@ class SettingsViewController: UIViewController {
         pieceSizeSML = PieceSizeSML(rawValue: sender.selectedSegmentIndex)!
         outerSize = SettingsViewController.outerSizeFrom(pieceSizeSML)
         createExamplePuzzle(outerSize)
+    }
+    
+    @IBAction func solvePuzzlePressed(_ sender: UIButton) {
+        isAutoSave = true
+        updateSettings?()
+        navigationController?.popViewController(animated: true)
     }
 }

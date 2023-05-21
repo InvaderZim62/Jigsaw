@@ -62,7 +62,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rJ4-lH-ia1">
-                                <rect key="frame" x="47" y="418" width="320" height="320"/>
+                                <rect key="frame" x="47" y="398" width="320" height="320"/>
                                 <color key="backgroundColor" systemColor="systemGray6Color"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="rJ4-lH-ia1" secondAttribute="height" multiplier="1:1" id="OcP-qj-UXG"/>
@@ -70,7 +70,7 @@
                                 </constraints>
                             </view>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="25" translatesAutoresizingMaskIntoConstraints="NO" id="JBM-vW-qrw">
-                                <rect key="frame" x="92.5" y="196.5" width="229" height="181.5"/>
+                                <rect key="frame" x="92.5" y="176.5" width="229" height="181.5"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="45" translatesAutoresizingMaskIntoConstraints="NO" id="qv4-rE-FBn">
                                         <rect key="frame" x="0.0" y="0.0" width="229" height="31"/>
@@ -130,20 +130,32 @@
                                     </stackView>
                                 </subviews>
                             </stackView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xoe-KD-F22">
+                                <rect key="frame" x="147" y="738" width="120.5" height="34.5"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Solve Puzzle"/>
+                                <connections>
+                                    <action selector="solvePuzzlePressed:" destination="gCO-oJ-sNv" eventType="touchUpInside" id="qLh-Yn-ab3"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Yo2-hH-5jr"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="rJ4-lH-ia1" firstAttribute="centerY" secondItem="lFN-RV-RLz" secondAttribute="centerY" constant="110" id="0QD-tb-5Da"/>
+                            <constraint firstItem="xoe-KD-F22" firstAttribute="top" secondItem="JBM-vW-qrw" secondAttribute="bottom" constant="20" id="BRc-bG-iCC"/>
                             <constraint firstItem="rJ4-lH-ia1" firstAttribute="centerX" secondItem="lFN-RV-RLz" secondAttribute="centerX" id="HPD-KG-Nn3"/>
+                            <constraint firstItem="xoe-KD-F22" firstAttribute="top" secondItem="rJ4-lH-ia1" secondAttribute="bottom" constant="20" id="Lnr-Up-Td5"/>
+                            <constraint firstItem="xoe-KD-F22" firstAttribute="centerX" secondItem="lFN-RV-RLz" secondAttribute="centerX" id="T7x-FE-byU"/>
                             <constraint firstItem="rJ4-lH-ia1" firstAttribute="top" secondItem="JBM-vW-qrw" secondAttribute="bottom" constant="40" id="WX8-FE-Tml"/>
                             <constraint firstItem="JBM-vW-qrw" firstAttribute="centerX" secondItem="lFN-RV-RLz" secondAttribute="centerX" id="dGK-Ad-OXR"/>
                             <constraint firstItem="JBM-vW-qrw" firstAttribute="centerY" secondItem="lFN-RV-RLz" secondAttribute="centerY" id="fMF-13-zqA"/>
                             <constraint firstItem="Yo2-hH-5jr" firstAttribute="trailing" secondItem="rJ4-lH-ia1" secondAttribute="trailing" constant="30" id="nXP-qe-lei"/>
                             <constraint firstItem="rJ4-lH-ia1" firstAttribute="leading" secondItem="JBM-vW-qrw" secondAttribute="trailing" constant="45" id="pWI-Y0-JYG"/>
-                            <constraint firstItem="rJ4-lH-ia1" firstAttribute="centerY" secondItem="lFN-RV-RLz" secondAttribute="centerY" constant="130" id="wV5-BQ-2rG">
+                            <constraint firstItem="rJ4-lH-ia1" firstAttribute="centerY" secondItem="lFN-RV-RLz" secondAttribute="centerY" constant="110" id="wV5-BQ-2rG">
                                 <variation key="heightClass=compact" constant="0.0"/>
                             </constraint>
+                            <constraint firstItem="xoe-KD-F22" firstAttribute="centerX" secondItem="JBM-vW-qrw" secondAttribute="centerX" id="yDD-ac-IjA"/>
                         </constraints>
                         <variation key="default">
                             <mask key="constraints">
@@ -153,6 +165,8 @@
                         <variation key="heightClass=compact">
                             <mask key="constraints">
                                 <exclude reference="dGK-Ad-OXR"/>
+                                <exclude reference="Lnr-Up-Td5"/>
+                                <exclude reference="T7x-FE-byU"/>
                                 <exclude reference="HPD-KG-Nn3"/>
                                 <exclude reference="WX8-FE-Tml"/>
                             </mask>
@@ -161,6 +175,8 @@
                             <mask key="constraints">
                                 <exclude reference="nXP-qe-lei"/>
                                 <exclude reference="fMF-13-zqA"/>
+                                <exclude reference="BRc-bG-iCC"/>
+                                <exclude reference="yDD-ac-IjA"/>
                                 <exclude reference="pWI-Y0-JYG"/>
                             </mask>
                         </variation>
