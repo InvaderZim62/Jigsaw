@@ -20,7 +20,7 @@ struct PuzzleConst {
     static let innerRatio: CGFloat = 0.60  // bigger ratio => bigger inner size (less distance tab cuts into neighboring piece)
     static let snapDistance = 0.1  // percent innerSize
     static let connectEpsilon = 1.0  // closeness to be considered connected
-    static let examplePuzzleWidth = 350.0  // matches hard-wired size in storyboard
+    static let examplePuzzleWidth = 320.0
     static let debugging = false
 }
 
@@ -50,7 +50,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var isOutlined = true
     var pieceSizeSML = PieceSizeSML.small {
         didSet {
-            outerSize = PuzzleConst.examplePuzzleWidth / CGFloat(5 - pieceSizeSML.rawValue) / PuzzleConst.innerRatio  // also in SettingsVC viewDidLoad
+            outerSize = SettingsViewController.outerSizeFrom(pieceSizeSML)
             innerSize = outerSize * PuzzleConst.innerRatio
         }
     }
@@ -58,12 +58,12 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     @IBOutlet weak var safeArea: UIView!
     @IBOutlet weak var autosizedBoardView: UIView!
     
-    // MARK: - Start of code
-    
     override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge {
         return .all
     }
     
+    // MARK: - Start of code
+
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Jigsaw Puzzle"
@@ -149,7 +149,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         createBoardView(puzzle.cols, puzzle.rows)
         
         randomlyPlacePiecesInSafeArea()
-//        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
+        solvePuzzle(rows: puzzle.rows, cols: puzzle.cols)
     }
 
     // resize image and split into overlapping squares

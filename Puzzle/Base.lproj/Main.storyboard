@@ -167,6 +167,7 @@
                     </view>
                     <connections>
                         <outlet property="boardView" destination="rJ4-lH-ia1" id="mv9-8N-fJq"/>
+                        <outlet property="boardViewWidthConstraint" destination="mRj-9N-MXT" id="dbt-Ml-TSB"/>
                         <outlet property="outlineSwitch" destination="zer-Ba-RPk" id="txR-jC-nFG"/>
                         <outlet property="pieceSizeSegmentedControl" destination="uFt-wh-R3m" id="YTT-rj-dVb"/>
                         <outlet property="rotationSwitch" destination="g8r-Gl-vMe" id="efg-S9-NfH"/>

@@ -95,7 +95,7 @@ extension CGPoint {
 }
 
 extension UIImage {
-    // create fixed-color image of given size
+    // create rectangular image of given color and size
     // usage: let redImage = UIImage(color: .red, size: CGSize(width: 200, height: 200))
     // from: https://stackoverflow.com/questions/26542035
     convenience init?(color: UIColor, size: CGSize = CGSize(width: 1, height: 1)) {
