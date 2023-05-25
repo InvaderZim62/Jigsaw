@@ -147,6 +147,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         pieceViews.values.forEach { $0.removeFromSuperview() }  // in case choosing a new photo
         pieceViews = createPieceViews(from: puzzle.pieces, and: tiles)  // create puzzle piece shapes overlaid with images
         
+        // create boardView to fit completed puzzle with final tile count, centered in safeArea
         createBoardView(puzzle.cols, puzzle.rows)
         
         randomlyPlacePiecesInSafeArea()
@@ -154,9 +155,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
 
     // resize image and split into overlapping squares
+    // note1: entire image will not be used, with integer number of tiles (image centered, before cropping)
+    // note2: entire container will not be filled, to preserve image aspect ratio
     func createTiles(from image: UIImage, fitting container: UIView) -> [[UIImage]] {
         // compute maximum size that fits in container, while maintaining image aspect ratio
-        let fitSize = sizeToFit(image, in: container)
+        let fitSize = image.sizeToFit(container.bounds.size)
 
         let resizedImage = image.resizedTo(fitSize)
 
@@ -165,19 +168,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return tiles
     }
     
-    // compute size that maximizes space in container, while maintaining image aspect ration
-    func sizeToFit(_ image: UIImage, in container: UIView) -> CGSize {
-        let imageAspectRatio = image.size.width / image.size.height
-        let containerAspectRatio = container.bounds.size.width / container.bounds.size.height
-        if imageAspectRatio > containerAspectRatio {
-            // width-limited
-            return CGSize(width: container.bounds.size.width, height: container.bounds.size.width / imageAspectRatio)
-        } else {
-            // height-limited
-            return CGSize(width: container.bounds.size.height * imageAspectRatio, height: container.bounds.size.height)
-        }
-    }
-
     func createPieceViews(from pieces: [Piece], and tiles: [[UIImage]]) -> [UUID: PieceView] {
         var pieceViews = [UUID: PieceView]()
         
@@ -620,7 +610,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         // .originalImage is the only way to get whole image in all orientations
         guard let pickerImage = info[.originalImage] as? UIImage else { return }
         dismiss(animated: true)  // dismiss picker
-        image = pickerImage  // for iPad, since it calls viewDidAppear again
+        image = pickerImage  // for iPad, since it calls viewDidAppear again (which uses image)
         createPuzzle(from: image)
     }
 }

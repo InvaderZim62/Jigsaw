@@ -109,6 +109,20 @@ extension UIImage {
         guard let cgImage = image?.cgImage else { return nil }
         self.init(cgImage: cgImage, scale: image!.scale, orientation: image!.imageOrientation)
     }
+    
+    // compute size of rectangle with aspect ratio of image that fits in container
+    // for example, if image is 1000 x 500, and container is 100 x 100, return 100 x 50
+    func sizeToFit(_ containerSize: CGSize) -> CGSize {
+        let imageAspectRatio = size.width / size.height
+        let containerAspectRatio = containerSize.width / containerSize.height
+        if imageAspectRatio > containerAspectRatio {
+            // width-limited
+            return CGSize(width: containerSize.width, height: containerSize.width / imageAspectRatio)
+        } else {
+            // height-limited
+            return CGSize(width: containerSize.height * imageAspectRatio, height: containerSize.height)
+        }
+    }
 
     // resize image to fit container, without changing aspect ratio
     // from: https://stackoverflow.com/questions/44715322
@@ -150,6 +164,7 @@ extension UIImage {
     }
     
     // break image into 2D array of tiles of given size
+    // note: integer number of tiles will not cover entire image, so some cropping will occur around the edges (image centered)
     // from: https://stackoverflow.com/questions/42076184
     func extractTiles(with tileSize: CGSize, overlap: CGFloat) -> [[UIImage]]? {  // tile[row][col]
         let cols = Int(size.width / (tileSize.width - overlap))
