@@ -124,16 +124,55 @@ extension UIImage {
         }
     }
 
-    // resize image to fit container, without changing aspect ratio
+    // resize image to fit container (stretch if newSize has different aspect ratio)
     // from: https://stackoverflow.com/questions/44715322
     func resizedTo(_ newSize: CGSize) -> UIImage {
         UIGraphicsBeginImageContext(newSize)
         
         draw(in: CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height))
-        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()!
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
         
-        return resizedImage
+        return newImage
+    }
+    
+    // resize and crop image to fit at least one dimension of newSize (maintaining aspect ratio);
+    // cropping is done symmetrically, maintaining center of image
+    // from: https://stackoverflow.com/questions/603907 (Chris Capener)
+    func aspectFilledTo(_ newSize: CGSize) -> UIImage {
+        var ratio: CGFloat = 0
+        var delta: CGFloat = 0
+        var drawRect = CGRect()
+
+        if newSize.width > newSize.height {
+            ratio = newSize.width / size.width
+            delta = (ratio * size.height) - newSize.height
+            drawRect = CGRect(x: 0, y: -delta / 2, width: newSize.width, height: newSize.height + delta)
+        } else {
+            ratio = newSize.height / size.height
+            delta = (ratio * size.width) - newSize.width
+            drawRect = CGRect(x: -delta / 2, y: 0, width: newSize.width + delta, height: newSize.height)
+        }
+
+//        UIGraphicsBeginImageContextWithOptions(newSize, true, 0.0)  // I changed this
+        UIGraphicsBeginImageContext(newSize)
+        draw(in: drawRect)
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+
+        return newImage
+    }
+    
+    // from: https://stackoverflow.com/questions/70252577 (removing resizing)
+    func withRoundedCorners(radius: CGFloat) -> UIImage {
+        UIGraphicsBeginImageContext(size)
+        let rect = CGRect(origin: .zero, size: size)
+        UIBezierPath(roundedRect: rect, cornerRadius: radius).addClip()
+        draw(in: rect)
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        
+        return newImage
     }
 
     // from: https://stackoverflow.com/questions/49853122
